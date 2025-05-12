@@ -42,10 +42,17 @@
         "groups": [
           {
             "group": "API Privada",
-            "openapi": { 
-              "source": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
+            "pages": [
+              "api-public/introduction",
+              {
+                "group":"Endpoints",
+                "openapi": { 
+                  "source": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
             }
-          },
+          }
+            ]
+            },
+            
           {
             "group": "API Pública",
             "pages":["api-public/introduction"],
