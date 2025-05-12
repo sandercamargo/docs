@@ -32,13 +32,28 @@ O primeiro passo é realizar o login do usuário e obter o seu token de seguran�
 ### Requisição
 
 ```
-POST /pub/widget/vendors/{platform}/securelogin
-X-Bq-Tenant: {tenant_key}
-{
-  "sessionToken": "<session_token>",
-  "segmentToken": "<segment_token>"
- }
+curl -X POST "https://api.bonifiq.com.br/pub/widget/vendors/vtex/securelogin" \
+  -H "Content-Type: application/json" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -d '{
+    "sessionToken": "<session_token>",
+    "segmentToken": "<segment_token>"
+  }'
 ```
+
+<RequestExample>
+
+``` filename
+curl -X POST "https://api.bonifiq.com.br/pub/widget/vendors/vtex/securelogin" \
+  -H "Content-Type: application/json" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -d '{
+    "sessionToken": "<session_token>",
+    "segmentToken": "<segment_token>"
+  }'
+```
+
+</RequestExample>
 
 ### Parâmetros
 
