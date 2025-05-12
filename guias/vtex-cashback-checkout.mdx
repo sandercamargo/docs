@@ -29,6 +29,8 @@ Este documento descreve as APIs necessárias para integrar o sistema de checkout
 
 O primeiro passo é realizar o login do usuário e obter o seu token de segurança. Esse token de segurança será utilizado em todas as chamadas subsequentes.
 
+Para obter o token de segurança, você precisa da chave `X-Bq-Tenant`. Essa chave é fornecida pelo time da BonifiQ e varia para cada loja. Se você está trabalhando com aplicativos de múltiplas marcas, essa chave irá variar para cada uma delas.
+
 ### Requisição
 
 ```
@@ -41,27 +43,23 @@ curl -X POST "https://api.bonifiq.com.br/pub/widget/vendors/vtex/securelogin" \
   }'
 ```
 
-### Parâmetros
-
-<ParamField header="X-Bq-Tenant" type="string" required>
-  Identificador público da loja.
-
-  <ParamField body="sessionToken" type="string" required>
-    Gerado pela VTEX após o login
-
-    <ParamField body="segmentToken" type="string" required>
+<Accordion title="Parâmetros" defaultOpen>
+  
+  <ParamField header="X-Bq-Tenant" type="string" required>
+    Identificador público da loja. Fornecido pelo time da BonifiQ. Exclusivo para cada loja.
+  </ParamField>
+    <ParamField body="sessionToken" type="string" required>
       Gerado pela VTEX após o login
     </ParamField>
-  </ParamField>
-</ParamField>
+      <ParamField body="segmentToken" type="string" required>
+        Gerado pela VTEX após o login
+      </ParamField>
 
-- **X-Bq-Tenant:** Identificador público da loja.
-- **sessionToken:** Gerado pela plataforma de e-commerce após o login do consumidor.
-- **segmentToken:** Gerado pela plataforma de e-commerce.
 
-### Exemplo de Resposta
+</Accordion>
 
-``` [expandable]
+
+```[expandable]
 {
   "HasError": false,
   "Message": null,
