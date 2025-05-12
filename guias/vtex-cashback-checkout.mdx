@@ -87,23 +87,11 @@ JSON
 
 Essa etapa será utilizada para a listagem de recompensas disponíveis para o usuário logado:
 
-,Requisição
-
-```
-GET /pub/widget/rewards/checkout?purchaseValue=XXX
- X-Bq-Tenant: {tenant_key}
- X-Bq-SecureToken: {secure_token}
-```
-
-<RequestExample>
-
-``` filename
+```json
 curl -X GET 'https://yourdomain.com/pub/widget/rewards/checkout?purchaseValue=XXX' \
   -H 'X-Bq-Tenant: {tenant_key}' \
   -H 'X-Bq-SecureToken: {secure_token}'
 ```
-
-</RequestExample>
 
 ### Parâmetros
 
