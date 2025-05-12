@@ -38,10 +38,9 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API Documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
+            "group": "API Privada",
+            "openapi": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
+            
           },
           {
             "group": "Endpoint Examples",
