@@ -1,104 +1,102 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
-  "colors": {
-    "primary": "#6631C6",
-    "light": "#F2F9FB",
-    "dark": "#332975"
-  },
-  "favicon": "/favicon.svg",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Get Started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
+   "$schema":"https://mintlify.com/docs.json",
+   "theme":"mint",
+   "name":"Mint Starter Kit",
+   "colors":{
+      "primary":"#6631C6",
+      "light":"#F2F9FB",
+      "dark":"#332975"
+   },
+   "favicon":"/favicon.svg",
+   "navigation":{
+      "tabs":[
+         {
+            "tab":"Guides",
+            "groups":[
+               {
+                  "group":"Get Started",
+                  "pages":[
+                     "index",
+                     "quickstart",
+                     "development"
+                  ]
+               },
+               {
+                  "group":"Essentials",
+                  "pages":[
+                     "essentials/markdown",
+                     "essentials/code",
+                     "essentials/images",
+                     "essentials/settings",
+                     "essentials/navigation",
+                     "essentials/reusable-snippets"
+                  ]
+               }
             ]
-          },
-          {
-            "group": "Essentials",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
-            ],
-             "openapi": { 
-              "source": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
-            }
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "API Privada",
-            "pages": [
-              "api-public/introduction",
-              {
-                "group":"Endpoints",
-                "openapi": { 
-                  "source": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
-            }
-          }
+         },
+         {
+            "tab":"API Reference",
+            "groups":[
+               {
+                  "group":"API Privada",
+                  "pages":[
+                     "api-public/introduction",
+                     {
+                        "group":"Endpoints",
+                        "openapi":{
+                           "source":"https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
+                        }
+                     }
+                  ]
+               },
+               {
+                  "group":"API Pública",
+                  "pages":[
+                     "api-public/introduction"
+                  ],
+                  "openapi":{
+                     "source":"https://api.bonifiq.com.br/swagger/Public%20APIs/swagger.json"
+                  }
+               },
+               {
+                  "group":"Endpoint Examples",
+                  "pages":[
+                     "api-reference/endpoint/get",
+                     "api-reference/endpoint/create",
+                     "api-reference/endpoint/delete",
+                     "api-reference/endpoint/webhook"
+                  ]
+               }
             ]
-            },
+         }
+      ],
+      "global":{
+         "anchors":[
             
-          {
-            "group": "API Pública",
-            "pages":["api-public/introduction"],
-            "openapi": { 
-              "source": "https://api.bonifiq.com.br/swagger/Public%20APIs/swagger.json"
-            }
-          },
-          {
-            "group": "Endpoint Examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
-          }
-        ]
+         ]
       }
-    ],
-    "global": {
-      "anchors": [
-       
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+   },
+   "logo":{
+      "light":"/logo/light.svg",
+      "dark":"/logo/dark.svg"
+   },
+   "navbar":{
+      "links":[
+         {
+            "label":"Support",
+            "href":"mailto:hi@mintlify.com"
+         }
+      ],
+      "primary":{
+         "type":"button",
+         "label":"Dashboard",
+         "href":"https://dashboard.mintlify.com"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/bonifiq",
-      "linkedin": "https://linkedin.com/company/bonifiq"
-    }
-  }
+   },
+   "footer":{
+      "socials":{
+         "github":"https://github.com/bonifiq",
+         "linkedin":"https://linkedin.com/company/bonifiq"
+      }
+   }
 }
