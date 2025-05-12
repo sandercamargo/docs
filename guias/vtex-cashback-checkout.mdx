@@ -82,3 +82,81 @@ JSON
 ### Descrição dos Campos
 
 - **SecureToken:** Token de segurança do usuário, com validade de 60 minutos.
+
+## 2. Buscar Recompensas
+
+Essa etapa será utilizada para a listagem de recompensas disponíveis para o usuário logado:
+
+,Requisição
+
+```
+GET /pub/widget/rewards/checkout?purchaseValue=XXX
+ X-Bq-Tenant: {tenant_key}
+ X-Bq-SecureToken: {secure_token}
+```
+
+<RequestExample>
+
+``` filename
+curl -X GET 'https://yourdomain.com/pub/widget/rewards/checkout?purchaseValue=XXX' \
+  -H 'X-Bq-Tenant: {tenant_key}' \
+  -H 'X-Bq-SecureToken: {secure_token}'
+```
+
+</RequestExample>
+
+### Parâmetros
+
+- **purchaseValue**: Valor da compra
+- **X-Bq-Tenant:** Identificador da loja.
+- **X-Bq-SecureToken:** Token do usuário obtido no login seguro.
+- **order_form_id:** Identificador do carrinho.
+
+### Exemplo de Resposta
+
+```
+{
+  "ProgramName": "VTEX IO QA",
+  "PointsBalance": 10000,
+  "HasError": false,
+  "Message": null,
+  "Item": [
+    {
+      "Id": 301,
+      "Type": 1,
+      "Title": "R$ 100,00",
+      "Points": 100,
+      "Description": "Troque 100 Moedas por um cupom de desconto de R$ 100,00. Após a confirmação você receberá o cupom por e-mail. Válido para compras acima de R$ 100,00 (sem considerar frete e outras promoções). Cupom válido por 365 dias após resgate. Não acumulativo com outras promoções.",
+      "Enabled": true,
+      "DisabledReason": null,
+      "PointBalance": null,
+      "NoPointCost": false,
+      "CanUse": true,
+      "UseReason": 0,
+      "RemainingToUse": 445,
+           "MinValueToUse": 0
+    }
+  ]
+ }
+```
+
+JSON
+
+- O campo `UseReason` se refere ao uso da recompensa, podendo possuir os valores abaixo:
+
+```
+enum RewardCheckoutUseReason {
+  CanUse = 0, // Recompensa disponível para uso
+  NotEnoughPoints = 1, // Cashback não disponível
+  MinValueNotReached = 2, // Cliente não cadastrado
+  CashbackNotAvailable = 3, // Valor mínimo não atingido
+  NoCustomer = 4, // Porcentagem mínima de compra não atingida
+  ValueRewardBiggerThanPurchase = 5, // Nenhum cliente
+  MinimumPercentPurchaseNotReached = 6, // Não há pontos suficientes
+  CustomerNotEnrolled = 7, // Recompensa de valor maior que a compra
+ }
+```
+
+React TSX
+
+- O campo `RemainingToUse` virá com um valor numérico caso o campo `UseReason` possua o valor `2` (`MinValueNotReached`)
