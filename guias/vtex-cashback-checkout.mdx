@@ -114,7 +114,7 @@ curl -X GET 'https://yourdomain.com/pub/widget/rewards/checkout?purchaseValue=XX
 
 ### Exemplo de Resposta
 
-```
+```json
 {
   "ProgramName": "VTEX IO QA",
   "PointsBalance": 10000,
@@ -144,7 +144,7 @@ JSON
 
 - O campo `UseReason` se refere ao uso da recompensa, podendo possuir os valores abaixo:
 
-```
+```json
 enum RewardCheckoutUseReason {
   CanUse = 0, // Recompensa disponível para uso
   NotEnoughPoints = 1, // Cashback não disponível
