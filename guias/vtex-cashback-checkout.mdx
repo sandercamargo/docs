@@ -1,0 +1,69 @@
+---
+title: "Integrar App com Cashback na VTEX"
+description: "Integre o app da sua loja virtual VTEX com a BonifiQ"
+---
+
+Este documento descreve as APIs necessárias para integrar o sistema de checkout BonifiQ ao aplicativo do cliente. As integrações abrangem login seguro, consulta e aplicação de recompensa. As chamadas são projetadas para garantir uma experiência segura e eficiente para o consumidor.
+
+### Principais Etapas
+
+<Steps>
+  <Step title="Login seguro">
+    Autenticação do usuário e obtenção de token de segurança.
+  </Step>
+  <Step title="Consulta de recompensas">
+    Verificação do saldo e regras para utilização da recompensa.
+  </Step>
+  <Step title="Aplicação de recompensa">
+    Resgate de recompensa no carrinho.
+  </Step>
+  <Step title="Consulta de recompensa aplicado">
+    Verificação do estado da recompensa no carrinho.
+  </Step>
+  <Step title="Remoção de recompensa">
+    Remover a recompensa aplicada a um carrinho.
+  </Step>
+</Steps>
+
+## Fazer Login Seguro
+
+O primeiro passo é realizar o login do usuário e obter o seu token de segurança. Esse token de segurança será utilizado em todas as chamadas subsequentes.
+
+### Requisição
+
+```
+POST /pub/widget/vendors/{platform}/securelogin
+X-Bq-Tenant: {tenant_key}
+{
+  "sessionToken": "<session_token>",
+  "segmentToken": "<segment_token>"
+ }
+```
+
+### Parâmetros
+
+- **X-Bq-Tenant:** Identificador público da loja.
+- **sessionToken:** Gerado pela plataforma de e-commerce após o login do consumidor.
+- **segmentToken:** Gerado pela plataforma de e-commerce.
+
+### Exemplo de Resposta
+
+```
+{
+  "HasError": false,
+  "Message": null,
+  "Item": {
+    "Email": "usuario@dominio.com",
+    "Name": "Nome Completo",
+    "UserId": "usuario@dominio.com",
+    "SecureToken": "742b9b93-c1dc-4ec1-8f92-6b3a1838c613"
+  }
+ }
+ 
+```
+
+JSON
+
+### Descrição dos Campos
+
+- **SecureToken:** Token de segurança do usuário, com validade de 60 minutos.
