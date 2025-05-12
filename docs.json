@@ -39,8 +39,9 @@
         "groups": [
           {
             "group": "API Privada",
-            "openapi": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
-            
+            "openapi": { 
+              "source": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
+            }
           },
           {
             "group": "Endpoint Examples",
