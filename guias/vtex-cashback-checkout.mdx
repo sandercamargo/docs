@@ -43,21 +43,15 @@ curl -X POST "https://api.bonifiq.com.br/pub/widget/vendors/vtex/securelogin" \
   }'
 ```
 
-<Accordion title="Parâmetros" defaultOpen>
-  
-  <ParamField header="X-Bq-Tenant" type="string" required>
-    Identificador público da loja. Fornecido pelo time da BonifiQ. Exclusivo para cada loja.
-  </ParamField>
-    <ParamField body="sessionToken" type="string" required>
-      Gerado pela VTEX após o login
-    </ParamField>
-      <ParamField body="segmentToken" type="string" required>
-        Gerado pela VTEX após o login
-      </ParamField>
-
-
-</Accordion>
-
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador público da loja. Fornecido pelo time da BonifiQ. Exclusivo para cada loja.
+</ParamField>
+<ParamField body="sessionToken" type="string" required>
+  Gerado pela VTEX após o login
+</ParamField>
+<ParamField body="segmentToken" type="string" required>
+  Gerado pela VTEX após o login
+</ParamField>
 
 ```[expandable]
 {
