@@ -44,6 +44,13 @@
             }
           },
           {
+            "group": "API Pública",
+            "pages":["api-public/introduction"],
+            "openapi": { 
+              "source": "https://api.bonifiq.com.br/swagger/Public%20APIs/swagger.json"
+            }
+          },
+          {
             "group": "Endpoint Examples",
             "pages": [
               "api-reference/endpoint/get",
