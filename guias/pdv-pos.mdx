@@ -16,11 +16,11 @@ sequenceDiagram
     participant PDV
     participant BonifiQ
 
-    Vendedor->>PDV: Informa documento do cliente
-    PDV->>BonifiQ: Consulta Recompensas
-    BonifiQ-->>PDV: Retorna recompensas disponíveis
-    PDV-->>Vendedor: Retorna recompensas disponíveis
-    Vendedor->>PDV: Escolhe uma recompensa
+    Vendedor->>PDV: A| Informa documento do cliente
+    PDV->>BonifiQ: A| Consulta Recompensas
+    BonifiQ-->>PDV: A| Retorna recompensas disponíveis
+    PDV-->>Vendedor: A| Retorna recompensas disponíveis
+    Vendedor->>PDV: A| Escolhe uma recompensa
     PDV->>BonifiQ: Validar Cliente
     BonifiQ-->>Cliente: Envia SMS com Código de Validação
     Cliente->>PDV: Cliente informa código
