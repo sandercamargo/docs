@@ -1,38 +1,10 @@
-# Documentação do Payload de Webhooks (Para Clientes)
+---
+title: "Webhooks"
+description: "Documentação completa dos payloads de webhook do sistema de Fidelidade"
+icon: "webhook"
+---
 
 Este documento descreve a estrutura JSON dos payloads de webhook enviados pelo sistema de Fidelidade para o seu endpoint registrado quando eventos específicos ocorrem.
-
----
-
-## Índice
-
-- [Estrutura Base do Webhook](#estrutura-base-do-webhook)
-- [Objetos de Dados Comuns](#objetos-de-dados-comuns)
-  - [Objeto Cliente](#objeto-cliente-customer-object)
-  - [Objeto Saldo de Pontos](#objeto-saldo-de-pontos-points-balance-object)
-- [Definições de Enum](#definições-de-enum)
-  - [CouponType](#coupontype-inteiro)
-  - [ObjectiveType](#objectivetype-inteiro)
-  - [PointType](#pointtype-inteiro)
-  - [PointAction](#pointaction-inteiro)
-- [Garantias de Entrega & Retentativas](#garantias-de-entrega--retentativas-de-webhook)
-- [Personalização](#personalização)
-- [Considerações de Segurança](#considerações-de-segurança)
-- [Lista de Todos os Tópicos Disponíveis](#lista-de-todos-os-tópicos-disponíveis)
-- [Payloads de Evento por Tópico](#payloads-de-evento-por-tópico)
-  - [Cupons](#tópico-communication_couponstouse)
-  - [Resgate de Recompensas](#tópico-communication_rewardcustomredeemnotification)
-  - [Ganho de Pontos](#tópicos-para-comunicações-de-ganho-de-pontos)
-  - [Alteração de Pontos](#tópico-communication_customerpointchangenotification)
-  - [Pontos para Uso](#tópico-communication_pointstouse)
-  - [Expiração de Pontos](#tópico-communication_notifyexpirablepoints)
-  - [Resgate de Pontos](#tópico-communication_redeempoints)
-  - [OTP](#tópico-communication_sentotptocustomer)
-  - [Níveis/Tiers](#tópicos-communication_customertierupgradenotification-communication_customertierdowngradenotification)
-  - [Transações de Pontos](#tópicos-para-transações-diretas-de-pontos)
-  - [Pedidos](#tópicos-para-pedidos)
-
----
 
 ## Estrutura Base do Webhook
 
@@ -47,12 +19,27 @@ Todas as notificações de webhook entregues ao seu endpoint seguirão este form
 }
 ```
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `Uuid` | `string` | Identificador único (UUID) para esta tentativa de entrega. Use para idempotência. *Ex:* `"f47ac10b-58cc-4372-a567-0e02b2c3d479"` |
-| `Timestamp` | `string` | Data e hora (ISO 8601, UTC) em que o evento ocorreu. *Ex:* `"2025-04-15T14:30:00.123Z"` |
-| `Topic` | `string` | Tipo de evento que ocorreu. Determina a estrutura do `Payload`. *Ex:* `"Communication_EarnPurchasePoints"` |
-| `Payload` | `object` | Objeto JSON com os detalhes específicos do evento. A estrutura varia conforme o `Topic`. |
+<ResponseField name="Uuid" type="string" required>
+  Identificador único (UUID) para esta tentativa de entrega. Use para idempotência.
+
+  Exemplo: `"f47ac10b-58cc-4372-a567-0e02b2c3d479"`
+</ResponseField>
+
+<ResponseField name="Timestamp" type="string" required>
+  Data e hora (ISO 8601, UTC) em que o evento ocorreu.
+
+  Exemplo: `"2025-04-15T14:30:00.123Z"`
+</ResponseField>
+
+<ResponseField name="Topic" type="string" required>
+  Tipo de evento que ocorreu. Determina a estrutura do `Payload`.
+
+  Exemplo: `"Communication_EarnPurchasePoints"`
+</ResponseField>
+
+<ResponseField name="Payload" type="object" required>
+  Objeto JSON com os detalhes específicos do evento. A estrutura varia conforme o `Topic`.
+</ResponseField>
 
 ---
 
@@ -60,47 +47,62 @@ Todas as notificações de webhook entregues ao seu endpoint seguirão este form
 
 Estes objetos JSON aparecem frequentemente dentro de diferentes estruturas de `Payload`:
 
-### Objeto Cliente (Customer Object)
+<AccordionGroup>
+  <Accordion title="Objeto Cliente (Customer)" icon="user">
+    Contém informações sobre o cliente relacionado ao evento.
 
-Contém informações sobre o cliente relacionado ao evento.
+    ```json
+    {
+      "Email": "cliente@exemplo.com",
+      "Id": "id_original_cliente_123",
+      "Name": "João Silva",
+      "Phone": "+5511999998888",
+      "Document": "12345678900",
+      "BirthdayDate": "1990-05-20T00:00:00Z",
+      "PointsBalance": 1500
+    }
+    ```
 
-```json
-{
-  "Email": "cliente@exemplo.com",
-  "Id": "id_original_cliente_123",
-  "Name": "João Silva",
-  "Phone": "+5511999998888",
-  "Document": "12345678900",
-  "BirthdayDate": "1990-05-20T00:00:00Z",
-  "PointsBalance": 1500
-}
-```
+    <ResponseField name="Email" type="string" required>
+      Endereço de e-mail principal do cliente
+    </ResponseField>
+    <ResponseField name="Id" type="string" required>
+      Identificador único do cliente no sistema de origem (ex: plataforma e-commerce)
+    </ResponseField>
+    <ResponseField name="Name" type="string" required>
+      Nome completo do cliente
+    </ResponseField>
+    <ResponseField name="Phone" type="string" required>
+      Número de telefone com código do país
+    </ResponseField>
+    <ResponseField name="Document" type="string">
+      Documento de identificação (ex: CPF), se fornecido. Pode ser `null`.
+    </ResponseField>
+    <ResponseField name="BirthdayDate" type="string">
+      Data de nascimento (ISO 8601), se fornecida. Pode ser `null`.
+    </ResponseField>
+    <ResponseField name="PointsBalance" type="number" required>
+      Saldo de pontos _no momento do evento_ (pode não refletir o saldo após o evento)
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Objeto Saldo de Pontos (PointsBalance)" icon="coins">
+    Contém o saldo de pontos e cashback do cliente _após_ o evento ter sido processado.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `Email` | `string` | Endereço de e-mail principal do cliente |
-| `Id` | `string` | Identificador único do cliente no sistema de origem (ex: plataforma e-commerce) |
-| `Name` | `string` | Nome completo do cliente |
-| `Phone` | `string` | Número de telefone com código do país |
-| `Document` | `string` \| `null` | Documento de identificação (ex: CPF), se fornecido |
-| `BirthdayDate` | `string` \| `null` | Data de nascimento (ISO 8601), se fornecida |
-| `PointsBalance` | `number` | Saldo de pontos *no momento do evento* (pode não refletir o saldo após o evento) |
+    ```json
+    {
+      "PointsBalance": 1650,
+      "CashbackBalance": 16.50
+    }
+    ```
 
-### Objeto Saldo de Pontos (Points Balance Object)
-
-Contém o saldo de pontos e cashback do cliente *após* o evento ter sido processado.
-
-```json
-{
-  "PointsBalance": 1650,
-  "CashbackBalance": 16.50
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `PointsBalance` | `number` | Saldo total de pontos *após* os efeitos do evento |
-| `CashbackBalance` | `number` | Saldo total de cashback (decimal) *após* os efeitos do evento |
+    <ResponseField name="PointsBalance" type="number" required>
+      Saldo total de pontos _após_ os efeitos do evento
+    </ResponseField>
+    <ResponseField name="CashbackBalance" type="number" required>
+      Saldo total de cashback (decimal) _após_ os efeitos do evento
+    </ResponseField>
+  </Accordion>
+</AccordionGroup>
 
 ---
 
@@ -108,82 +110,92 @@ Contém o saldo de pontos e cashback do cliente *após* o evento ter sido proces
 
 Vários campos do payload representam tipos enumerados, enviados como **inteiros** no JSON.
 
-### `CouponType` (Inteiro)
+<Tabs>
+  <Tab title="CouponType">
+    Indica o tipo de um cupom.
 
-Indica o tipo de um cupom.
+    | Valor | Nome             | Descrição                                 |
+    | ----- | ---------------- | ----------------------------------------- |
+    | `0`   | FixedValue       | Valor fixo (ex: R\$ 10,00 de desconto)    |
+    | `1`   | Percent          | Valor percentual (ex: 10% de desconto)    |
+    | `2`   | FreeShipping     | Frete grátis                              |
+    | `3`   | DiscountShipping | Desconto em frete                         |
+    | `4`   | Others           | Outros tipos (frequentemente pré-gerados) |
+  </Tab>
+  <Tab title="ObjectiveType">
+    Indica a razão ou atividade que disparou o evento (ganho de pontos).
 
-| Valor | Nome | Descrição |
-|-------|------|-----------|
-| `0` | FixedValue | Valor fixo (ex: R$ 10,00 de desconto) |
-| `1` | Percent | Valor percentual (ex: 10% de desconto) |
-| `2` | FreeShipping | Frete grátis |
-| `3` | DiscountShipping | Desconto em frete |
-| `4` | Others | Outros tipos (frequentemente pré-gerados) |
+    | Valor | Nome                       | Descrição            |
+    | ----- | -------------------------- | -------------------- |
+    | `0`   | Purchase                   | Fazer uma compra     |
+    | `1`   | Signup                     | Criar conta          |
+    | `2`   | Birthday                   | Fazer aniversário    |
+    | `3`   | Review                     | Fazer um review      |
+    | `4`   | Referral                   | Indique um amigo(a)  |
+    | `5`   | SocialMediaFollowInstagram | Siga no Instagram    |
+    | `6`   | SocialMediaFollowFacebook  | Siga no Facebook     |
+    | `7`   | Quiz                       | Responda um Quiz     |
+    | `8`   | Custom                     | Objetivo Customizado |
+    | `9`   | SocialMediaFollowLinkedin  | Siga no Linkedin     |
+    | `10`  | SocialMediaFollowTikTok    | Siga no TikTok       |
+  </Tab>
+  <Tab title="PointType">
+    Especifica a razão detalhada para uma transação de ponto.
 
-### `ObjectiveType` (Inteiro)
+    | Valor | Nome                       | Descrição                        |
+    | ----- | -------------------------- | -------------------------------- |
+    | `0`   | Purchase                   | Fez uma compra                   |
+    | `1`   | Signup                     | Criou conta                      |
+    | `2`   | Birthday                   | Fez aniversário                  |
+    | `3`   | Ordinary                   | Concedido por administrador      |
+    | `4`   | Reward                     | Trocou por recompensa            |
+    | `5`   | Review                     | Fez um review                    |
+    | `6`   | Refund                     | Reembolso de pontos              |
+    | `7`   | Expire                     | Pontos expirados                 |
+    | `8`   | Referral                   | Indicou um amigo                 |
+    | `9`   | SocialMediaFollowFacebook  | Seguiu no Facebook               |
+    | `10`  | SocialMediaFollowInstagram | Seguiu no Instagram              |
+    | `11`  | PartialOrderRefund         | Reembolso parcial de pedido      |
+    | `12`  | Quiz                       | Respondeu um quiz                |
+    | `13`  | CustomObjective            | Pontos de objetivo personalizado |
+    | `14`  | ReferralAffiliate          | Indicação de afiliado            |
+  </Tab>
+  <Tab title="PointAction">
+    Indica se pontos foram adicionados ou removidos.
 
-Indica a razão ou atividade que disparou o evento (ganho de pontos).
-
-| Valor | Nome | Descrição |
-|-------|------|-----------|
-| `0` | Purchase | Fazer uma compra |
-| `1` | Signup | Criar conta |
-| `2` | Birthday | Fazer aniversário |
-| `3` | Review | Fazer um review |
-| `4` | Referral | Indique um amigo(a) |
-| `5` | SocialMediaFollowInstagram | Siga no Instagram |
-| `6` | SocialMediaFollowFacebook | Siga no Facebook |
-| `7` | Quiz | Responda um Quiz |
-| `8` | Custom | Objetivo Customizado |
-| `9` | SocialMediaFollowLinkedin | Siga no Linkedin |
-| `10` | SocialMediaFollowTikTok | Siga no TikTok |
-
-### `PointType` (Inteiro)
-
-Especifica a razão detalhada para uma transação de ponto.
-
-| Valor | Nome | Descrição |
-|-------|------|-----------|
-| `0` | Purchase | Fez uma compra |
-| `1` | Signup | Criou conta |
-| `2` | Birthday | Fez aniversário |
-| `3` | Ordinary | Concedido por administrador |
-| `4` | Reward | Trocou por recompensa |
-| `5` | Review | Fez um review |
-| `6` | Refund | Reembolso de pontos |
-| `7` | Expire | Pontos expirados |
-| `8` | Referral | Indicou um amigo |
-| `9` | SocialMediaFollowFacebook | Seguiu no Facebook |
-| `10` | SocialMediaFollowInstagram | Seguiu no Instagram |
-| `11` | PartialOrderRefund | Reembolso parcial de pedido |
-| `12` | Quiz | Respondeu um quiz |
-| `13` | CustomObjective | Pontos de objetivo personalizado |
-| `14` | ReferralAffiliate | Indicação de afiliado |
-
-### `PointAction` (Inteiro)
-
-Indica se pontos foram adicionados ou removidos.
-
-| Valor | Nome | Descrição |
-|-------|------|-----------|
-| `0` | Take | Pontos removidos ou gastos |
-| `1` | Grant | Pontos adicionados ou concedidos |
+    | Valor | Nome  | Descrição                        |
+    | ----- | ----- | -------------------------------- |
+    | `0`   | Take  | Pontos removidos ou gastos       |
+    | `1`   | Grant | Pontos adicionados ou concedidos |
+  </Tab>
+</Tabs>
 
 ---
 
-## Garantias de Entrega & Retentativas de Webhook
+## Garantias de Entrega
 
-| Aspecto | Descrição |
-|---------|-----------|
-| **Idempotência** | Cada entrega inclui um `Uuid` único. Armazene e verifique para evitar processamento duplicado. |
-| **Retentativas** | Entregas falhas são retentadas automaticamente com backoff crescente. |
-| **Timeout** | O sistema espera até **30 segundos** por uma resposta HTTP 2xx. |
-| **Desativação** | Após **5+ falhas consecutivas**, a assinatura pode ser desativada automaticamente. |
+<CardGroup cols={2}>
+  <Card title="Idempotência" icon="fingerprint">
+    Cada entrega inclui um `Uuid` único. Armazene e verifique para evitar processamento duplicado.
+  </Card>
+  <Card title="Retentativas" icon="rotate">
+    Entregas falhas são retentadas automaticamente com backoff crescente.
+  </Card>
+  <Card title="Timeout" icon="clock">
+    O sistema espera até **30 segundos** por uma resposta HTTP 2xx.
+  </Card>
+  <Card title="Desativação" icon="circle-xmark">
+    Após **5+ falhas consecutivas**, a assinatura pode ser desativada automaticamente.
+  </Card>
+</CardGroup>
 
-**Recomendações:**
-- Responda com HTTP 2xx idealmente em poucos segundos
-- Processe o payload de forma assíncrona para evitar timeouts
-- Monitore falhas e reative assinaturas conforme necessário
+<Note>
+  **Recomendações:**
+
+  - Responda com HTTP 2xx idealmente em poucos segundos
+  - Processe o payload de forma assíncrona para evitar timeouts
+  - Monitore falhas e reative assinaturas conforme necessário
+</Note>
 
 ---
 
@@ -191,76 +203,91 @@ Indica se pontos foram adicionados ou removidos.
 
 Ao configurar sua assinatura de webhook, você pode personalizar:
 
-| Opção | Descrição |
-|-------|-----------|
-| **Corpo Personalizado** | Defina uma estrutura JSON customizada usando linguagem de template |
-| **Variáveis na URL** | Use variáveis do payload na URL (ex: `https://endpoint.com/{{Customer.Id}}`) |
-| **Método HTTP** | Especifique `PUT`, `POST`, etc. (padrão: `POST`) |
-| **Cabeçalhos Personalizados** | Configure headers estáticos para autenticação ou roteamento |
-
-*Consulte a interface de configuração de webhooks para detalhes sobre templates e variáveis disponíveis.*
+<CardGroup cols={2}>
+  <Card title="Corpo Personalizado" icon="code">
+    Defina uma estrutura JSON customizada usando linguagem de template
+  </Card>
+  <Card title="Variáveis na URL" icon="link">
+    Use variáveis do payload na URL (ex: `https://endpoint.com/{{Customer.Id}}`)
+  </Card>
+  <Card title="Método HTTP" icon="arrow-right-arrow-left">
+    Especifique `PUT`, `POST`, etc. (padrão: `POST`)
+  </Card>
+  <Card title="Cabeçalhos" icon="gear">
+    Configure headers estáticos para autenticação ou roteamento
+  </Card>
+</CardGroup>
 
 ---
 
 ## Considerações de Segurança
 
-| Prática | Descrição |
-|---------|-----------|
-| **HTTPS** | Sempre use `https://` para criptografia em trânsito |
-| **Sigilo do Endpoint** | Mantenha a URL do endpoint difícil de adivinhar |
-| **Segredo Compartilhado** | Configure um header customizado (ex: `X-Loyalty-Secret`) com um valor secreto e valide em cada requisição recebida |
+<Warning>
+  Sempre siga as melhores práticas de segurança ao implementar webhooks.
+</Warning>
+
+<Steps>
+  <Step title="Use HTTPS">
+    Sempre use `https://` para criptografia em trânsito
+  </Step>
+  <Step title="Mantenha o sigilo do endpoint">
+    Mantenha a URL do endpoint difícil de adivinhar
+  </Step>
+  <Step title="Configure um segredo compartilhado">
+    Configure um header customizado (ex: `X-Loyalty-Secret`) com um valor secreto e valide em cada requisição recebida
+  </Step>
+</Steps>
 
 ---
 
 ## Lista de Todos os Tópicos Disponíveis
 
-Referência rápida de todos os 26 tópicos de webhook disponíveis:
+Referência rápida de todos os **26 tópicos** de webhook disponíveis:
 
-### Comunicações de Ganho de Pontos
-
-| Tópico | Descrição |
-|--------|-----------|
-| `Communication_EarnPurchasePoints` | Pontos por compra |
-| `Communication_EarnBirthdayPoints` | Pontos por aniversário |
-| `Communication_EarnSignupPoints` | Pontos por cadastro |
-| `Communication_EarnReviewPoints` | Pontos por review |
-| `Communication_ReferralCommunicationPoints` | Pontos por indicação |
-| `Communication_EarnQuizPoints` | Pontos por quiz |
-| `Communication_EarnCustomObjectivePoints` | Pontos por objetivo customizado |
-| `Communication_EarnSocialMediaFollowInstagram` | Pontos por seguir no Instagram |
-| `Communication_EarnSocialMediaFollowFacebook` | Pontos por seguir no Facebook |
-| `Communication_EarnSocialMediaFollowLinkedin` | Pontos por seguir no Linkedin |
-| `Communication_EarnSocialMediaFollowTikTok` | Pontos por seguir no TikTok |
-
-### Outras Comunicações
-
-| Tópico | Descrição |
-|--------|-----------|
-| `Communication_CouponsToUse` | Cupom disponível para uso |
-| `Communication_RewardCustomRedeemNotification` | Resgate de recompensa customizada |
-| `Communication_CustomerPointChangeNotification` | Alteração de pontos do cliente |
-| `Communication_PointsToUse` | Pontos disponíveis para uso |
-| `Communication_NotifyExpirablePoints` | Expiração de pontos |
-| `Communication_RedeemPoints` | Resgate de pontos por recompensa |
-| `Communication_SentOTPToCustomer` | Envio de código de validação (OTP) |
-| `Communication_CustomerTierUpgradeNotification` | Cliente subiu de nível |
-| `Communication_CustomerTierDowngradeNotification` | Cliente desceu de nível |
-
-### Transações de Pontos
-
-| Tópico | Descrição |
-|--------|-----------|
-| `Point_Add` | Ponto adicionado |
-| `Point_Update` | Ponto atualizado |
-| `Point_Removed` | Ponto removido |
-| `EarnPointsReferralAffilidate` | Pontos de afiliado |
-
-### Pedidos
-
-| Tópico | Descrição |
-|--------|-----------|
-| `OrderInsert` | Pedido inserido |
-| `OrderUpdate` | Pedido atualizado |
+<Tabs>
+  <Tab title="Ganho de Pontos">
+    | Tópico                                         | Descrição                       |
+    | ---------------------------------------------- | ------------------------------- |
+    | `Communication_EarnPurchasePoints`             | Pontos por compra               |
+    | `Communication_EarnBirthdayPoints`             | Pontos por aniversário          |
+    | `Communication_EarnSignupPoints`               | Pontos por cadastro             |
+    | `Communication_EarnReviewPoints`               | Pontos por review               |
+    | `Communication_ReferralCommunicationPoints`    | Pontos por indicação            |
+    | `Communication_EarnQuizPoints`                 | Pontos por quiz                 |
+    | `Communication_EarnCustomObjectivePoints`      | Pontos por objetivo customizado |
+    | `Communication_EarnSocialMediaFollowInstagram` | Pontos por seguir no Instagram  |
+    | `Communication_EarnSocialMediaFollowFacebook`  | Pontos por seguir no Facebook   |
+    | `Communication_EarnSocialMediaFollowLinkedin`  | Pontos por seguir no Linkedin   |
+    | `Communication_EarnSocialMediaFollowTikTok`    | Pontos por seguir no TikTok     |
+  </Tab>
+  <Tab title="Outras Comunicações">
+    | Tópico                                            | Descrição                          |
+    | ------------------------------------------------- | ---------------------------------- |
+    | `Communication_CouponsToUse`                      | Cupom disponível para uso          |
+    | `Communication_RewardCustomRedeemNotification`    | Resgate de recompensa customizada  |
+    | `Communication_CustomerPointChangeNotification`   | Alteração de pontos do cliente     |
+    | `Communication_PointsToUse`                       | Pontos disponíveis para uso        |
+    | `Communication_NotifyExpirablePoints`             | Expiração de pontos                |
+    | `Communication_RedeemPoints`                      | Resgate de pontos por recompensa   |
+    | `Communication_SentOTPToCustomer`                 | Envio de código de validação (OTP) |
+    | `Communication_CustomerTierUpgradeNotification`   | Cliente subiu de nível             |
+    | `Communication_CustomerTierDowngradeNotification` | Cliente desceu de nível            |
+  </Tab>
+  <Tab title="Transações de Pontos">
+    | Tópico                         | Descrição          |
+    | ------------------------------ | ------------------ |
+    | `Point_Add`                    | Ponto adicionado   |
+    | `Point_Update`                 | Ponto atualizado   |
+    | `Point_Removed`                | Ponto removido     |
+    | `EarnPointsReferralAffilidate` | Pontos de afiliado |
+  </Tab>
+  <Tab title="Pedidos">
+    | Tópico        | Descrição         |
+    | ------------- | ----------------- |
+    | `OrderInsert` | Pedido inserido   |
+    | `OrderUpdate` | Pedido atualizado |
+  </Tab>
+</Tabs>
 
 ---
 
@@ -268,379 +295,449 @@ Referência rápida de todos os 26 tópicos de webhook disponíveis:
 
 A estrutura do objeto `Payload` depende da string `Topic`.
 
-### Tópico: `Communication_CouponsToUse`
+### Cupons
 
-Enviado quando uma comunicação é disparada referente a cupons disponíveis para o cliente usar.
+<Accordion title="Communication_CouponsToUse" icon="ticket">
+  Enviado quando uma comunicação é disparada referente a cupons disponíveis para o cliente usar.
 
-**Estrutura do Payload:**
+  ```json
+  {
+    "CouponType": 1,
+    "ValidDateEnd": "2025-12-31T23:59:59Z",
+    "CouponValue": 10.00,
+    "CouponCode": "BEMVINDO10",
+    "Customer": { ... }
+  }
+  ```
 
-```json
-{
-  "CouponType": 1,
-  "ValidDateEnd": "2025-12-31T23:59:59Z",
-  "CouponValue": 10.00,
-  "CouponCode": "BEMVINDO10",
-  "Customer": { ... }
-}
-```
+  <ResponseField name="CouponType" type="number" required>
+    Tipo do cupom. Veja [CouponType](#definições-de-enum)
+  </ResponseField>
+  <ResponseField name="ValidDateEnd" type="string">
+    Data de expiração (ISO 8601), se houver. Pode ser `null`.
+  </ResponseField>
+  <ResponseField name="CouponValue" type="number" required>
+    Valor do cupom (ex: `10.0` para 10% ou R\$10,00)
+  </ResponseField>
+  <ResponseField name="CouponCode" type="string" required>
+    Código para resgate
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `CouponType` | `number` | Tipo do cupom. Veja [CouponType](#coupontype-inteiro) |
-| `ValidDateEnd` | `string` \| `null` | Data de expiração (ISO 8601), se houver |
-| `CouponValue` | `number` | Valor do cupom (ex: `10.0` para 10% ou R$10,00) |
-| `CouponCode` | `string` | Código para resgate |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
+### Resgate de Recompensas
 
----
+<Accordion title="Communication_RewardCustomRedeemNotification" icon="gift">
+  Enviado após um cliente resgatar pontos por uma recompensa personalizada.
 
-### Tópico: `Communication_RewardCustomRedeemNotification`
+  ```json
+  {
+    "Points": 500,
+    "RewardDescription": "Caneca Grátis com Logo",
+    "Coupon": "RESGATECAN123",
+    "Customer": { ... }
+  }
+  ```
 
-Enviado após um cliente resgatar pontos por uma recompensa personalizada.
+  <ResponseField name="Points" type="number" required>
+    Pontos gastos no resgate
+  </ResponseField>
+  <ResponseField name="RewardDescription" type="string" required>
+    Descrição da recompensa
+  </ResponseField>
+  <ResponseField name="Coupon" type="string">
+    Código de cupom gerado, se aplicável. Pode ser `null`.
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
 
-**Estrutura do Payload:**
-
-```json
-{
-  "Points": 500,
-  "RewardDescription": "Caneca Grátis com Logo",
-  "Coupon": "RESGATECAN123",
-  "Customer": { ... }
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `Points` | `number` | Pontos gastos no resgate |
-| `RewardDescription` | `string` | Descrição da recompensa |
-| `Coupon` | `string` \| `null` | Código de cupom gerado, se aplicável |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-
----
-
-### Tópicos para Comunicações de Ganho de Pontos
+### Ganho de Pontos
 
 Estes tópicos são enviados quando um cliente ganha pontos. A estrutura varia conforme o tipo de objetivo.
 
 **Campos Base Comuns:**
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `EarnedPoints` | `number` | Pontos ganhos neste evento |
-| `ObjectiveType` | `number` | Tipo de objetivo. Veja [ObjectiveType](#objectivetype-inteiro) |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-
-#### 1. `Communication_EarnPurchasePoints`
-
-Ganho de pontos por uma compra.
-
-```json
-{
-  "EarnedPoints": 150,
-  "ObjectiveType": 0,
-  "Customer": { ... },
-  "CashbackEarned": 1.50,
-  "ValidDate": "2026-04-15T00:00:00Z",
-  "OrderDate": "2025-04-15T10:05:00Z",
-  "OrderValue": 150.00,
-  "PercentCashbackEarned": 0.01,
-  "Date": "2025-04-15T10:05:10Z",
-  "OrderId": "pedido_123",
-  "PointId": 98765
-}
-```
-
-| Campo Adicional | Tipo | Descrição |
-|-----------------|------|-----------|
-| `CashbackEarned` | `number` | Cashback ganho |
-| `ValidDate` | `string` \| `null` | Expiração dos pontos/cashback |
-| `OrderDate` | `string` | Data do pedido |
-| `OrderValue` | `number` | Valor total do pedido |
-| `PercentCashbackEarned` | `number` | Taxa de cashback (ex: `0.01` = 1%) |
-| `Date` | `string` | Data do registro do evento |
-| `OrderId` | `string` | ID do pedido no sistema de origem |
-| `PointId` | `number` | ID interno do registro de ponto |
-
-#### 2. `Communication_EarnBirthdayPoints`
-
-Ganho de pontos como bônus de aniversário.
-
-```json
-{
-  "EarnedPoints": 100,
-  "ObjectiveType": 2,
-  "Customer": { ... },
-  "BirthdayPoints": 100,
-  "BirthdayBonification": "Bônus Feliz Aniversário!",
-  "CouponType": 1,
-  "CouponCode": "NIVERPRESENTE",
-  "RedeemUrl": "https://exemplo.com/resgatar-niver"
-}
-```
-
-| Campo Adicional | Tipo | Descrição |
-|-----------------|------|-----------|
-| `BirthdayPoints` | `number` | Pontos do aniversário |
-| `BirthdayBonification` | `string` \| `null` | Descrição do bônus |
-| `CouponType` | `number` \| `null` | Tipo do cupom concedido |
-| `CouponCode` | `string` \| `null` | Código do cupom |
-| `RedeemUrl` | `string` \| `null` | URL para resgate |
-
-#### 3. `Communication_EarnSignupPoints`
-
-Ganho de pontos por cadastro. Usa apenas os campos base comuns.
-
-#### 4. `Communication_EarnReviewPoints`
-
-Ganho de pontos por review. Usa apenas os campos base comuns.
-
-#### 5. `Communication_ReferralCommunicationPoints`
-
-Ganho de pontos por indicação.
-
-```json
-{
-  "EarnedPoints": 200,
-  "ObjectiveType": 4,
-  "Customer": { ... },
-  "FriendName": "Maria Souza"
-}
-```
-
-| Campo Adicional | Tipo | Descrição |
-|-----------------|------|-----------|
-| `FriendName` | `string` \| `null` | Nome do amigo indicado |
-
-#### 6. `Communication_EarnQuizPoints`
-
-Ganho de pontos por quiz. Usa apenas os campos base comuns.
-
-#### 7. `Communication_EarnCustomObjectivePoints`
-
-Ganho de pontos por objetivo personalizado. Usa apenas os campos base comuns.
-
-#### 8-11. Comunicações de Redes Sociais
-
-Os tópicos abaixo usam a estrutura base comum:
-
-- `Communication_EarnSocialMediaFollowInstagram` (ObjectiveType: 5)
-- `Communication_EarnSocialMediaFollowFacebook` (ObjectiveType: 6)
-- `Communication_EarnSocialMediaFollowLinkedin` (ObjectiveType: 9)
-- `Communication_EarnSocialMediaFollowTikTok` (ObjectiveType: 10)
-
----
-
-### Tópico: `Communication_CustomerPointChangeNotification`
-
-Enviado quando há alteração manual ou diversa no saldo de pontos.
-
-**Estrutura do Payload:**
-
-```json
-{
-  "Points": -50,
-  "PointsValidDate": "01/08/2025",
-  "Customer": { ... }
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `Points` | `number` | Pontos da alteração (positivo = adição, negativo = subtração) |
-| `PointsValidDate` | `string` | Data de expiração formatada |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-
----
-
-### Tópico: `Communication_PointsToUse`
-
-Enviado para informar o cliente sobre seu potencial de resgate.
-
-**Estrutura do Payload:**
-
-```json
-{
-  "PointsToUse": 1500,
-  "MaxValueDiscount": "R$ 15,00",
-  "MaxPercentDiscount": "10%",
-  "Customer": { ... }
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `PointsToUse` | `number` | Total de pontos disponíveis |
-| `MaxValueDiscount` | `string` | Desconto monetário máximo formatado |
-| `MaxPercentDiscount` | `string` | Desconto percentual máximo formatado |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-
----
-
-### Tópico: `Communication_NotifyExpirablePoints`
-
-Enviado para notificar sobre pontos próximos da expiração.
-
-**Estrutura do Payload:**
-
-```json
-{
-  "PointsToExpire": 250,
-  "ExpirationAt": "2025-07-31T23:59:59Z",
-  "ExpirationDate": "31/07/2025",
-  "Customer": { ... }
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `PointsToExpire` | `number` | Quantidade de pontos que expirarão |
-| `ExpirationAt` | `string` | Data/hora de expiração (ISO 8601) |
-| `ExpirationDate` | `string` | Data formatada para exibição |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-
----
-
-### Tópico: `Communication_RedeemPoints`
-
-Enviado após resgate de pontos por recompensa padrão.
-
-**Estrutura do Payload:**
-
-```json
-{
-  "CouponCode": "RESGATE5OFF",
-  "CouponDescription": "Cupom de Desconto R$ 5,00",
-  "Points": 500,
-  "Customer": { ... }
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `CouponCode` | `string` | Código do cupom gerado |
-| `CouponDescription` | `string` | Descrição da recompensa |
-| `Points` | `number` | Pontos gastos |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-
----
-
-### Tópico: `Communication_SentOTPToCustomer`
-
-Enviado quando um código OTP é enviado ao cliente.
-
-> ⚠️ **Nota de Segurança:** Seja cauteloso ao processar OTPs via webhooks. Garanta que seu endpoint e lógica sejam seguros.
-
-**Estrutura do Payload:**
-
-```json
-{
-  "Otp": "123456",
-  "Customer": { ... }
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `Otp` | `string` | Senha de uso único enviada |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-
----
-
-### Tópicos: `Communication_CustomerTierUpgradeNotification`, `Communication_CustomerTierDowngradeNotification`
-
-Enviado quando o nível de fidelidade do cliente muda.
-
-**Estrutura do Payload:**
-
-```json
-{
-  "TierName": "Ouro",
-  "Benefits": [
-    "Frete Grátis em todos os pedidos",
-    "Acesso antecipado a promoções"
-  ],
-  "NextTierTargets": [
-    "Gastar R$ 5000 nos próximos 6 meses"
-  ],
-  "Customer": { ... }
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `TierName` | `string` | Nome do novo nível |
-| `Benefits` | `array<string>` | Lista de benefícios do nível |
-| `NextTierTargets` | `array<string>` | Requisitos para próximo nível (vazio se for o mais alto) |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-
----
-
-### Tópicos para Transações Diretas de Pontos
-
-#### `Point_Add`, `Point_Update`, `Point_Removed`
-
-Alterações no registro de pontos.
-
-**Estrutura do Payload:**
-
-```json
-{
-  "Points": 150,
-  "PointType": 0,
-  "PointAction": 1,
-  "Customer": { ... },
-  "PointsBalance": {
-    "PointsBalance": 1650,
-    "CashbackBalance": 16.50
-  },
-  "PointId": 98765
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `Points` | `number` | Pontos da transação |
-| `PointType` | `number` | Tipo/razão. Veja [PointType](#pointtype-inteiro) |
-| `PointAction` | `number` | Ação. Veja [PointAction](#pointaction-inteiro) |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-| `PointsBalance` | `object` | [Objeto Saldo de Pontos](#objeto-saldo-de-pontos-points-balance-object) |
-| `PointId` | `number` | ID interno da transação |
-
-#### `EarnPointsReferralAffilidate`
-
-Afiliado ganha pontos/cashback por indicação.
-
-**Estrutura do Payload:**
-
-```json
-{
-  "Points": 250,
-  "CashbackReceived": 2.50,
-  "OrderPlacementDate": "2025-04-14T16:20:00Z",
-  "Customer": { ... },
-  "PointsBalance": { ... }
-}
-```
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `Points` | `number` | Pontos ganhos pelo afiliado |
-| `CashbackReceived` | `number` | Cashback ganho pelo afiliado |
-| `OrderPlacementDate` | `string` | Data do pedido do cliente indicado |
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) (dados do afiliado) |
-| `PointsBalance` | `object` | [Objeto Saldo de Pontos](#objeto-saldo-de-pontos-points-balance-object) |
-
----
-
-### Tópicos para Pedidos
-
-#### `OrderInsert`
-
-Enviado quando um novo pedido é registrado.
-
-#### `OrderUpdate`
-
-Enviado quando um pedido existente é atualizado.
+<ResponseField name="EarnedPoints" type="number" required>
+  Pontos ganhos neste evento
+</ResponseField>
+
+<ResponseField name="ObjectiveType" type="number" required>
+  Tipo de objetivo. Veja [ObjectiveType](#definições-de-enum)
+</ResponseField>
+
+<ResponseField name="Customer" type="object" required>
+  [Objeto Cliente](#objetos-de-dados-comuns)
+</ResponseField>
+
+<AccordionGroup>
+  <Accordion title="Communication_EarnPurchasePoints" icon="cart-shopping">
+    Ganho de pontos por uma compra.
+
+    ```json
+    {
+      "EarnedPoints": 150,
+      "ObjectiveType": 0,
+      "Customer": { ... },
+      "CashbackEarned": 1.50,
+      "ValidDate": "2026-04-15T00:00:00Z",
+      "OrderDate": "2025-04-15T10:05:00Z",
+      "OrderValue": 150.00,
+      "PercentCashbackEarned": 0.01,
+      "Date": "2025-04-15T10:05:10Z",
+      "OrderId": "pedido_123",
+      "PointId": 98765
+    }
+    ```
+
+    **Campos Adicionais:**
+
+    <ResponseField name="CashbackEarned" type="number">
+      Cashback ganho
+    </ResponseField>
+    <ResponseField name="ValidDate" type="string">
+      Expiração dos pontos/cashback
+    </ResponseField>
+    <ResponseField name="OrderDate" type="string" required>
+      Data do pedido
+    </ResponseField>
+    <ResponseField name="OrderValue" type="number" required>
+      Valor total do pedido
+    </ResponseField>
+    <ResponseField name="PercentCashbackEarned" type="number">
+      Taxa de cashback (ex: `0.01` = 1%)
+    </ResponseField>
+    <ResponseField name="Date" type="string" required>
+      Data do registro do evento
+    </ResponseField>
+    <ResponseField name="OrderId" type="string" required>
+      ID do pedido no sistema de origem
+    </ResponseField>
+    <ResponseField name="PointId" type="number" required>
+      ID interno do registro de ponto
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Communication_EarnBirthdayPoints" icon="cake-candles">
+    Ganho de pontos como bônus de aniversário.
+
+    ```json
+    {
+      "EarnedPoints": 100,
+      "ObjectiveType": 2,
+      "Customer": { ... },
+      "BirthdayPoints": 100,
+      "BirthdayBonification": "Bônus Feliz Aniversário!",
+      "CouponType": 1,
+      "CouponCode": "NIVERPRESENTE",
+      "RedeemUrl": "https://exemplo.com/resgatar-niver"
+    }
+    ```
+
+    **Campos Adicionais:**
+
+    <ResponseField name="BirthdayPoints" type="number" required>
+      Pontos do aniversário
+    </ResponseField>
+    <ResponseField name="BirthdayBonification" type="string">
+      Descrição do bônus
+    </ResponseField>
+    <ResponseField name="CouponType" type="number">
+      Tipo do cupom concedido
+    </ResponseField>
+    <ResponseField name="CouponCode" type="string">
+      Código do cupom
+    </ResponseField>
+    <ResponseField name="RedeemUrl" type="string">
+      URL para resgate
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Communication_EarnSignupPoints" icon="user-plus">
+    Ganho de pontos por cadastro. Usa apenas os campos base comuns.
+  </Accordion>
+  <Accordion title="Communication_EarnReviewPoints" icon="star">
+    Ganho de pontos por review. Usa apenas os campos base comuns.
+  </Accordion>
+  <Accordion title="Communication_ReferralCommunicationPoints" icon="user-group">
+    Ganho de pontos por indicação.
+
+    ```json
+    {
+      "EarnedPoints": 200,
+      "ObjectiveType": 4,
+      "Customer": { ... },
+      "FriendName": "Maria Souza"
+    }
+    ```
+
+    **Campo Adicional:**
+
+    <ResponseField name="FriendName" type="string">
+      Nome do amigo indicado
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Communication_EarnQuizPoints" icon="circle-question">
+    Ganho de pontos por quiz. Usa apenas os campos base comuns.
+  </Accordion>
+  <Accordion title="Communication_EarnCustomObjectivePoints" icon="bullseye">
+    Ganho de pontos por objetivo personalizado. Usa apenas os campos base comuns.
+  </Accordion>
+  <Accordion title="Comunicações de Redes Sociais" icon="share-nodes">
+    Os tópicos abaixo usam a estrutura base comum:
+
+    - `Communication_EarnSocialMediaFollowInstagram` (ObjectiveType: 5)
+    - `Communication_EarnSocialMediaFollowFacebook` (ObjectiveType: 6)
+    - `Communication_EarnSocialMediaFollowLinkedin` (ObjectiveType: 9)
+    - `Communication_EarnSocialMediaFollowTikTok` (ObjectiveType: 10)
+  </Accordion>
+</AccordionGroup>
+
+### Alteração de Pontos
+
+<Accordion title="Communication_CustomerPointChangeNotification" icon="arrows-rotate">
+  Enviado quando há alteração manual ou diversa no saldo de pontos.
+
+  ```json
+  {
+    "Points": -50,
+    "PointsValidDate": "01/08/2025",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="Points" type="number" required>
+    Pontos da alteração (positivo = adição, negativo = subtração)
+  </ResponseField>
+  <ResponseField name="PointsValidDate" type="string" required>
+    Data de expiração formatada
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+### Pontos Disponíveis
+
+<Accordion title="Communication_PointsToUse" icon="coins">
+  Enviado para informar o cliente sobre seu potencial de resgate.
+
+  ```json
+  {
+    "PointsToUse": 1500,
+    "MaxValueDiscount": "R$ 15,00",
+    "MaxPercentDiscount": "10%",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="PointsToUse" type="number" required>
+    Total de pontos disponíveis
+  </ResponseField>
+  <ResponseField name="MaxValueDiscount" type="string" required>
+    Desconto monetário máximo formatado
+  </ResponseField>
+  <ResponseField name="MaxPercentDiscount" type="string" required>
+    Desconto percentual máximo formatado
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+### Expiração de Pontos
+
+<Accordion title="Communication_NotifyExpirablePoints" icon="hourglass-half">
+  Enviado para notificar sobre pontos próximos da expiração.
+
+  ```json
+  {
+    "PointsToExpire": 250,
+    "ExpirationAt": "2025-07-31T23:59:59Z",
+    "ExpirationDate": "31/07/2025",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="PointsToExpire" type="number" required>
+    Quantidade de pontos que expirarão
+  </ResponseField>
+  <ResponseField name="ExpirationAt" type="string" required>
+    Data/hora de expiração (ISO 8601)
+  </ResponseField>
+  <ResponseField name="ExpirationDate" type="string" required>
+    Data formatada para exibição
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+### Resgate de Pontos
+
+<Accordion title="Communication_RedeemPoints" icon="hand-holding-dollar">
+  Enviado após resgate de pontos por recompensa padrão.
+
+  ```json
+  {
+    "CouponCode": "RESGATE5OFF",
+    "CouponDescription": "Cupom de Desconto R$ 5,00",
+    "Points": 500,
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="CouponCode" type="string" required>
+    Código do cupom gerado
+  </ResponseField>
+  <ResponseField name="CouponDescription" type="string" required>
+    Descrição da recompensa
+  </ResponseField>
+  <ResponseField name="Points" type="number" required>
+    Pontos gastos
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+### OTP (Código de Verificação)
+
+<Accordion title="Communication_SentOTPToCustomer" icon="key">
+  Enviado quando um código OTP é enviado ao cliente.
+
+  <Warning>
+    **Nota de Segurança:** Seja cauteloso ao processar OTPs via webhooks. Garanta que seu endpoint e lógica sejam seguros.
+  </Warning>
+  ```json
+  {
+    "Otp": "123456",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="Otp" type="string" required>
+    Senha de uso único enviada
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+### Níveis/Tiers
+
+<Accordion title="Communication_CustomerTierUpgradeNotification / Communication_CustomerTierDowngradeNotification" icon="arrow-up-right-dots">
+  Enviado quando o nível de fidelidade do cliente muda.
+
+  ```json
+  {
+    "TierName": "Ouro",
+    "Benefits": [
+      "Frete Grátis em todos os pedidos",
+      "Acesso antecipado a promoções"
+    ],
+    "NextTierTargets": [
+      "Gastar R$ 5000 nos próximos 6 meses"
+    ],
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="TierName" type="string" required>
+    Nome do novo nível
+  </ResponseField>
+  <ResponseField name="Benefits" type="array" required>
+    Lista de benefícios do nível
+  </ResponseField>
+  <ResponseField name="NextTierTargets" type="array" required>
+    Requisitos para próximo nível (vazio se for o mais alto)
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+### Transações de Pontos
+
+<AccordionGroup>
+  <Accordion title="Point_Add / Point_Update / Point_Removed" icon="database">
+    Alterações no registro de pontos.
+
+    ```json
+    {
+      "Points": 150,
+      "PointType": 0,
+      "PointAction": 1,
+      "Customer": { ... },
+      "PointsBalance": {
+        "PointsBalance": 1650,
+        "CashbackBalance": 16.50
+      },
+      "PointId": 98765
+    }
+    ```
+
+    <ResponseField name="Points" type="number" required>
+      Pontos da transação
+    </ResponseField>
+    <ResponseField name="PointType" type="number" required>
+      Tipo/razão. Veja [PointType](#definições-de-enum)
+    </ResponseField>
+    <ResponseField name="PointAction" type="number" required>
+      Ação. Veja [PointAction](#definições-de-enum)
+    </ResponseField>
+    <ResponseField name="Customer" type="object" required>
+      [Objeto Cliente](#objetos-de-dados-comuns)
+    </ResponseField>
+    <ResponseField name="PointsBalance" type="object" required>
+      [Objeto Saldo de Pontos](#objetos-de-dados-comuns)
+    </ResponseField>
+    <ResponseField name="PointId" type="number" required>
+      ID interno da transação
+    </ResponseField>
+  </Accordion>
+  <Accordion title="EarnPointsReferralAffilidate" icon="handshake">
+    Afiliado ganha pontos/cashback por indicação.
+
+    ```json
+    {
+      "Points": 250,
+      "CashbackReceived": 2.50,
+      "OrderPlacementDate": "2025-04-14T16:20:00Z",
+      "Customer": { ... },
+      "PointsBalance": { ... }
+    }
+    ```
+
+    <ResponseField name="Points" type="number" required>
+      Pontos ganhos pelo afiliado
+    </ResponseField>
+    <ResponseField name="CashbackReceived" type="number" required>
+      Cashback ganho pelo afiliado
+    </ResponseField>
+    <ResponseField name="OrderPlacementDate" type="string" required>
+      Data do pedido do cliente indicado
+    </ResponseField>
+    <ResponseField name="Customer" type="object" required>
+      [Objeto Cliente](#objetos-de-dados-comuns) (dados do afiliado)
+    </ResponseField>
+    <ResponseField name="PointsBalance" type="object" required>
+      [Objeto Saldo de Pontos](#objetos-de-dados-comuns)
+    </ResponseField>
+  </Accordion>
+</AccordionGroup>
+
+### Pedidos
+
+<AccordionGroup>
+  <Accordion title="OrderInsert" icon="plus">
+    Enviado quando um novo pedido é registrado.
+  </Accordion>
+  <Accordion title="OrderUpdate" icon="pen">
+    Enviado quando um pedido existente é atualizado.
+  </Accordion>
+</AccordionGroup>
 
 **Estrutura do Payload (ambos os tópicos):**
 
@@ -657,17 +754,40 @@ Enviado quando um pedido existente é atualizado.
 }
 ```
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `Customer` | `object` | [Objeto Cliente](#objeto-cliente-customer-object) |
-| `OrderId` | `string` | ID do pedido no sistema de origem |
-| `BonifiQOrderId` | `number` | ID interno no sistema BonifiQ |
-| `OrderPlacementDate` | `string` | Data do pedido (ISO 8601) |
-| `OrderTotal` | `number` | Valor total do pedido |
-| `PointsBalance` | `object` | [Objeto Saldo de Pontos](#objeto-saldo-de-pontos-points-balance-object) |
-| `EarnedPoints` | `number` | Pontos ganhos/associados |
-| `EarnedCashback` | `number` | Cashback ganho/associado |
+<ResponseField name="Customer" type="object" required>
+  [Objeto Cliente](#objetos-de-dados-comuns)
+</ResponseField>
+
+<ResponseField name="OrderId" type="string" required>
+  ID do pedido no sistema de origem
+</ResponseField>
+
+<ResponseField name="BonifiQOrderId" type="number" required>
+  ID interno no sistema BonifiQ
+</ResponseField>
+
+<ResponseField name="OrderPlacementDate" type="string" required>
+  Data do pedido (ISO 8601)
+</ResponseField>
+
+<ResponseField name="OrderTotal" type="number" required>
+  Valor total do pedido
+</ResponseField>
+
+<ResponseField name="PointsBalance" type="object" required>
+  [Objeto Saldo de Pontos](#objetos-de-dados-comuns)
+</ResponseField>
+
+<ResponseField name="EarnedPoints" type="number" required>
+  Pontos ganhos/associados
+</ResponseField>
+
+<ResponseField name="EarnedCashback" type="number" required>
+  Cashback ganho/associado
+</ResponseField>
 
 ---
 
-*Documentação atualizada em Dezembro de 2025.*
+<Info>
+  Documentação atualizada em Dezembro de 2025.
+</Info>
