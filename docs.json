@@ -1,98 +1,83 @@
 {
-   "$schema":"https://mintlify.com/docs.json",
-   "theme":"mint",
-   "name":"BonifiQ Developers",
-   "colors":{
-      "primary":"#8849f9",
-      "light":"#4DCCF8",
-      "dark":"#291D5C"
-   },
-   "favicon":"/favicon2.png",
-   "navigation":{
-      "tabs":[
-         {
-            "tab":"Bem-vindo!",
-            "groups":[
-               {
-                  "group":"Primeiros Passos",
-                  "pages":[
-                     "index",
-                     "quickstart",
-                     "development"
-                  ]
-               },
-               {
-                  "group":"Essentials",
-                  "pages":[
-                     "essentials/markdown",
-                     "essentials/code",
-                     "essentials/images",
-                     "essentials/settings",
-                     "essentials/navigation",
-                     "essentials/reusable-snippets"
-                  ]
-               }
-            ]
-         },
-         {
-            "tab":"API Backend (Privada)",
-            "groups":[
-               {
-                  "group":"API Privada",
-                  "pages":[
-                     "api-private/introduction",
-                     {
-                        "openapi":{
-                           "source":"https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
-                        }
-                     }
-                  ]
-               }
-               
-            ]
-         },
-         {
-            "tab":"API Frontend (Pública)",
-            "groups":[               
-               {
-                  "group":"API Frontend (Pública)",
-                  "pages":[
-                     "api-public/introduction"
-                  ],
-                  "openapi":{
-                     "source":"https://api.bonifiq.com.br/swagger/Public%20APIs/swagger.json"
-                  }
-               }
-            ]
-         }
-      ],
-      "global":{
-         "anchors":[
-            
-         ]
+  "theme": "mint",
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "BonifiQ Developers",
+  "colors": {
+    "primary": "#8849f9",
+    "light": "#4DCCF8",
+    "dark": "#291D5C"
+  },
+  "logo": {
+    "light": "/logo/logobonifiq.svg",
+    "dark": "/logo/logobonifiq.svg"
+  },
+  "favicon": "/favicon2.png",
+  "navbar": {
+    "links": [
+      {
+        "label": "Suporte",
+        "href": "https://suporte.bonifiq.com.br"
       }
-   },
-   "logo":{
-      "light":"/logo/logobonifiq.svg",
-      "dark":"/logo/logobonifiq.svg"
-   },
-   "navbar":{
-      "links":[
-         {
-            "label":"Suporte",
-            "href":"https://suporte.bonifiq.com.br"
-         }
-      ],
-      "primary":{
-         "type":"button",
-         "label":"Dashboard",
-         "href":"https://app.bonifiq.com.br"
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://app.bonifiq.com.br"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Bem-vindo!",
+        "groups": [
+          {
+            "group": "Primeiros Passos",
+            "pages": [
+              "index",
+              "quickstart",
+              "development"
+            ]
+          },
+          {
+            "group": "Essentials",
+            "pages": [
+              "essentials/markdown",
+              "essentials/code",
+              "essentials/images",
+              "essentials/settings",
+              "essentials/navigation",
+              "essentials/reusable-snippets"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Backend (Privada)"
+      },
+      {
+        "tab": "API Backend (Privada)",
+        "href": "https://developers.bonifiq.com.br/api-private/introduction"
+      },
+      {
+        "tab": "API Frontend (Pública)",
+        "groups": [
+          {
+            "group": "API Frontend (Pública)",
+            "openapi": {
+              "source": "https://api.bonifiq.com.br/swagger/Public%20APIs/swagger.json"
+            },
+            "pages": [
+              "api-public/introduction"
+            ]
+          }
+        ]
       }
-   },
-   "footer":{
-      "socials":{
-         "github":"https://github.com/bonifiq",
-         "linkedin":"https://linkedin.com/company/bonifiq"
-      }
-   }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/bonifiq",
+      "linkedin": "https://linkedin.com/company/bonifiq"
+    }
+  }
 }
