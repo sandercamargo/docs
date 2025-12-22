@@ -61,20 +61,8 @@
             ]
          },
          {
-            "tab":"API Backend (Privada)",
-            "groups":[
-               {
-                  "group":"API Privada",
-                  "pages":[
-                     "api-public/introduction",
-                     {
-                        "group":"Endpoints",
-                        "openapi":{
-                           "source":"https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
-                        }
-                     }
-                  ]
-               },
+            "tab":"API Frontend (Pública)",
+            "groups":[               
                {
                   "group":"API Frontend (Pública)",
                   "pages":[
@@ -83,15 +71,6 @@
                   "openapi":{
                      "source":"https://api.bonifiq.com.br/swagger/Public%20APIs/swagger.json"
                   }
-               },
-               {
-                  "group":"Endpoint Examples",
-                  "pages":[
-                     "api-reference/endpoint/get",
-                     "api-reference/endpoint/create",
-                     "api-reference/endpoint/delete",
-                     "api-reference/endpoint/webhook"
-                  ]
                }
             ]
          }
