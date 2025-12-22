@@ -40,7 +40,7 @@
                {
                   "group":"API Privada",
                   "pages":[
-                     "api-public/introduction",
+                     "api-private/introduction",
                      {
                         "group":"Endpoints",
                         "openapi":{

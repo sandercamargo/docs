@@ -1,0 +1,14 @@
+---
+title: "APIs Privadas"
+description: "As APIs privadas permitem que você faça chamadas via backend da sua aplicação"
+---
+
+## Limitações
+
+Estes endpoints foram criados com intuito de comunicação entre sistemas (backend-to-backend) e, portanto, não são compatíveis com CORS e não podem ser utilizados em navegadores e frontends (como React, Angular, Javascript, etc). Se sua integração precisar de um browser você provavelmente deverá utilizar as APIs de Frontend.
+
+## Autenticação
+
+Para utilizar as APIs você precisa das chaves de autenticação. Você deve gerá-las no painel administrativo da BonifiQ, no menu "[API](https://app.bonifiq.com.br/apicredentials)",
+
+A autenticação é feita utilizando [Basic Authentication](https://en.wikipedia.org/wiki/Basic_access_authentication). Você deve armazenar as credenciais de forma privada e segura, como senhas.
