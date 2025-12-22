@@ -42,7 +42,6 @@
                   "pages":[
                      "api-private/introduction",
                      {
-                        "group":"Endpoints",
                         "openapi":{
                            "source":"https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
                         }
