@@ -1,41 +1,55 @@
 ---
-title: "Integrar App com Cashback na VTEX"
-description: "Integre o app da sua loja virtual VTEX com a BonifiQ"
+title: "API de Checkout"
+description: "A BonifiQ já oferece uma solução nativa para integrar diretamente ao Checkout da VTEX no modelo Web. No modelo Mobile, no entanto, requer que seja realizada a integração com as APIs da BonifiQ diremente
+"
 ---
 
-Este documento descreve as APIs necessárias para integrar o sistema de checkout BonifiQ ao aplicativo do cliente. As integrações abrangem login seguro, consulta e aplicação de recompensa. As chamadas são projetadas para garantir uma experiência segura e eficiente para o consumidor.
+As integrações abrangem login seguro, consulta e aplicação de recompensa. As chamadas são projetadas para garantir uma experiência segura e eficiente para o consumidor.
 
 ### Principais Etapas
 
-<Steps>
-  <Step title="Login seguro">
-    Autenticação do usuário e obtenção de token de segurança.
-  </Step>
-  <Step title="Consulta de recompensas">
-    Verificação do saldo e regras para utilização da recompensa.
-  </Step>
-  <Step title="Aplicação de recompensa">
-    Resgate de recompensa no carrinho.
-  </Step>
-  <Step title="Consulta de recompensa aplicado">
-    Verificação do estado da recompensa no carrinho.
-  </Step>
-  <Step title="Remoção de recompensa">
-    Remover a recompensa aplicada a um carrinho.
-  </Step>
-</Steps>
+1. **Login seguro:** Autenticação do usuário e obtenção de token de segurança.
+2. **Consulta de recompensas:** Verificação do saldo e regras para utilização da recompensa.
+3. **Aplicação de recompensa:** Resgate de recompensa no carrinho.
+4. **Consulta de recompensa aplicado:** Verificação do estado da recompensa no carrinho.
+5. **Remoção de recompensa:** Remover a recompensa aplicada a um carrinho.
 
-## Fazer Login Seguro
+---
+
+## 1. Fazer Login Seguro
 
 O primeiro passo é realizar o login do usuário e obter o seu token de segurança. Esse token de segurança será utilizado em todas as chamadas subsequentes.
 
-Para obter o token de segurança, você precisa da chave `X-Bq-Tenant`. Essa chave é fornecida pelo time da BonifiQ e varia para cada loja. Se você está trabalhando com aplicativos de múltiplas marcas, essa chave irá variar para cada uma delas.
+O `sessionToken`e o `segmentToken`deverão ser obtidos mediante login na VTEX.  
+
+<Note>
+  O `SecureToken` tem validade limitada e deve ser atualizado periodicamente.
+</Note>
 
 ### Requisição
 
-```
-curl -X POST "https://api.bonifiq.com.br/pub/widget/vendors/vtex/securelogin" \
-  -H "Content-Type: application/json" \
+`POST /pub/widget/vendors/vtex/securelogin`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador público da loja.
+</ParamField>
+
+**Body**
+
+<ParamField body="sessionToken" type="string" required>
+  Gerado pela plataforma de e-commerce após o login do consumidor.
+</ParamField>
+
+<ParamField body="segmentToken" type="string">
+  Gerado pela plataforma de e-commerce.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/vendors/vtex/securelogin" \
   -H "X-Bq-Tenant: {tenant_key}" \
   -d '{
     "sessionToken": "<session_token>",
@@ -43,17 +57,24 @@ curl -X POST "https://api.bonifiq.com.br/pub/widget/vendors/vtex/securelogin" \
   }'
 ```
 
-<ParamField header="X-Bq-Tenant" type="string" required>
-  Identificador público da loja. Fornecido pelo time da BonifiQ. Exclusivo para cada loja.
-</ParamField>
-<ParamField body="sessionToken" type="string" required>
-  Gerado pela VTEX após o login
-</ParamField>
-<ParamField body="segmentToken" type="string" required>
-  Gerado pela VTEX após o login
-</ParamField>
+### Resposta
 
-```[expandable]
+<ResponseField name="HasError" type="boolean">
+  Indica se houve erro na requisição.
+</ResponseField>
+
+<ResponseField name="Item" type="object">
+  <Expandable title="Properties">
+    <ResponseField name="Email" type="string">
+      E-mail do usuário.
+    </ResponseField>
+    <ResponseField name="SecureToken" type="string">
+      Token de segurança do usuário, com validade de 60 minutos.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+```json
 {
   "HasError": false,
   "Message": null,
@@ -63,36 +84,59 @@ curl -X POST "https://api.bonifiq.com.br/pub/widget/vendors/vtex/securelogin" \
     "UserId": "usuario@dominio.com",
     "SecureToken": "742b9b93-c1dc-4ec1-8f92-6b3a1838c613"
   }
- }
- 
+}
 ```
 
-JSON
-
-### Descrição dos Campos
-
-- **SecureToken:** Token de segurança do usuário, com validade de 60 minutos.
+---
 
 ## 2. Buscar Recompensas
 
-Essa etapa será utilizada para a listagem de recompensas disponíveis para o usuário logado:
+Essa etapa será utilizada para a listagem de recompensas disponíveis para o usuário logado.
 
-```json
-curl -X GET 'https://yourdomain.com/pub/widget/rewards/checkout?purchaseValue=XXX' \
-  -H 'X-Bq-Tenant: {tenant_key}' \
-  -H 'X-Bq-SecureToken: {secure_token}'
+### Requisição
+
+`GET /pub/widget/rewards/checkout`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Query Parameters**
+
+<ParamField query="purchaseValue" type="number" required>
+  Valor da compra.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout?purchaseValue=100.00" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}"
 ```
 
-### Parâmetros
+### Resposta
 
-- **purchaseValue**: Valor da compra
-- **X-Bq-Tenant:** Identificador da loja.
-- **X-Bq-SecureToken:** Token do usuário obtido no login seguro.
-- **order_form_id:** Identificador do carrinho.
+<ResponseField name="Item" type="array">
+  Lista de recompensas.
 
-### Exemplo de Resposta
+  <Expandable title="Item Object">
+    <ResponseField name="UseReason" type="number">
+      Motivo da disponibilidade/indisponibilidade.
+    </ResponseField>
+    <ResponseField name="RemainingToUse" type="number">
+      Valor restante para atingir o mínimo (se `UseReason` for 2).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
 
-```json [expandable]
+```json
 {
   "ProgramName": "VTEX IO QA",
   "PointsBalance": 10000,
@@ -104,37 +148,350 @@ curl -X GET 'https://yourdomain.com/pub/widget/rewards/checkout?purchaseValue=XX
       "Type": 1,
       "Title": "R$ 100,00",
       "Points": 100,
-      "Description": "Troque 100 Moedas por um cupom de desconto de R$ 100,00. Após a confirmação você receberá o cupom por e-mail. Válido para compras acima de R$ 100,00 (sem considerar frete e outras promoções). Cupom válido por 365 dias após resgate. Não acumulativo com outras promoções.",
+      "Description": "Descrição da recompensa...",
       "Enabled": true,
-      "DisabledReason": null,
-      "PointBalance": null,
-      "NoPointCost": false,
       "CanUse": true,
       "UseReason": 0,
       "RemainingToUse": 445,
-           "MinValueToUse": 0
+      "MinValueToUse": 0
     }
   ]
- }
+}
 ```
 
-JSON
+#### Enumeração `RewardCheckoutUseReason`
 
-- O campo `UseReason` se refere ao uso da recompensa, podendo possuir os valores abaixo:
+| Valor | Descrição                               |
+| :---- | :-------------------------------------- |
+| 0     | CanUse (Recompensa disponível para uso) |
+| 1     | NotEnoughPoints                         |
+| 2     | MinValueNotReached                      |
+| 3     | CashbackNotAvailable                    |
+| 4     | NoCustomer                              |
+| 5     | ValueRewardBiggerThanPurchase           |
+| 6     | MinimumPercentPurchaseNotReached        |
+| 7     | CustomerNotEnrolled                     |
+
+---
+
+## 2.1. Buscar Recompensas já Resgatadas
+
+Essa etapa será utilizada para a listagem de recompensas já resgatadas e não utilizadas pelo consumidor.
+
+### Requisição
+
+`GET /pub/widget/rewards/checkout/redeemed`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Query Parameters**
+
+<ParamField query="purchaseValue" type="number" required>
+  Valor da compra.
+</ParamField>
+
+### Exemplo de Resposta
 
 ```json
-enum RewardCheckoutUseReason {
-  CanUse = 0, // Recompensa disponível para uso
-  NotEnoughPoints = 1, // Cashback não disponível
-  MinValueNotReached = 2, // Cliente não cadastrado
-  CashbackNotAvailable = 3, // Valor mínimo não atingido
-  NoCustomer = 4, // Porcentagem mínima de compra não atingida
-  ValueRewardBiggerThanPurchase = 5, // Nenhum cliente
-  MinimumPercentPurchaseNotReached = 6, // Não há pontos suficientes
-  CustomerNotEnrolled = 7, // Recompensa de valor maior que a compra
- }
+{
+  "HasError": false,
+  "Message": null,
+  "Item": [
+    {
+      "RedeemedId": 1302,
+      "RedeemedPoints": -10,
+      "RedeemedValue": 0,
+      "Id": 302,
+      "Type": 0,
+      "Title": "10%",
+      "Points": 10,
+      "CanUse": true,
+      "UseReason": 0
+    }
+  ]
+}
 ```
 
-React TSX
+---
 
-- O campo `RemainingToUse` virá com um valor numérico caso o campo `UseReason` possua o valor `2` (`MinValueNotReached`)
+## 3. Aplicar Recompensa
+
+Essa etapa será utilizada para a aplicação de recompensas ainda não resgatadas.
+
+### Requisição
+
+`POST /pub/widget/rewards/redeem/{reward_id}`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Path Parameters**
+
+<ParamField path="reward_id" type="integer" required>
+  ID da recompensa a ser resgatada.
+</ParamField>
+
+**Body (Opcional)**
+
+<ParamField body="OriginalId" type="string">
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+```json
+{
+  "OriginalId": "<order_form_id>"
+}
+```
+
+### Exemplo de Resposta
+
+```json
+{
+  "HasError": false,
+  "Message": "Tudo Certo! Em breve você irá receber um e-mail com mais instruções",
+  "Item": {
+    "Success": true,
+    "ResultMessage": "Utilize seu cupom nesta compra:",
+    "CouponCode": "c806711b278a463d8e787f5f5c409f89",
+    "HasCouponCode": true,
+    "Reward": {
+      "RedeemedId": 1416,
+      "Title": "2%",
+      "Points": 2
+    }
+  }
+}
+```
+
+---
+
+## 3.1. Aplicar Recompensa já Resgatada
+
+Essa etapa será utilizada para a aplicação de recompensas já resgatadas.
+
+### Requisição
+
+`POST /pub/widget/rewardredeemed/checkout/redeem/{reward_redeemed_id}`
+
+<Warning>
+  O valor de `reward_redeemed_id` deverá ser o valor retornado na propriedade `RedeemedId` da seção "Buscar Recompensas já Resgatadas".
+</Warning>
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Path Parameters**
+
+<ParamField path="reward_redeemed_id" type="integer" required>
+  ID da recompensa resgatada.
+</ParamField>
+
+**Body (Opcional)**
+
+<ParamField body="OriginalId" type="string">
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+---
+
+## 3.2. Aplicar Cashback
+
+Essa etapa será utilizada para a aplicação de _cashback_.
+
+### Requisição
+
+`POST /pub/widget/rewards/checkout/cashback/redeem`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Body**
+
+<ParamField body="CheckoutId" type="string" required>
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+<ParamField body="CashbackValue" type="number" required>
+  Valor do cashback a ser resgatado.
+</ParamField>
+
+<ParamField body="RedeemOrigin" type="integer" required>
+  Sempre 3 para relatórios internos.
+</ParamField>
+
+<ParamField body="Total" type="number" required>
+  Valor do carrinho (sem descontos ou frete).
+</ParamField>
+
+### Exemplo de Resposta
+
+```json
+{
+  "AppliedCashback": 0,
+  "Success": true,
+  "CustomerMessage": "Cashback resgatado com sucesso.",
+  "CashbackRules": "Pague até 50% da compra com cashback.",
+  "InternalMessage": null,
+  "CouponCode": null
+}
+```
+
+---
+
+## 4. Consultar Recompensa Aplicada
+
+Esta etapa será utilizada para o caso do cliente saia da tela do checkout e seja necessário reaplicar o estado de recompensa resgatada a ele.
+
+### Requisição
+
+`POST /pub/widget/rewards/checkout`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Body**
+
+<ParamField body="CheckoutCode" type="string" required>
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+```json
+{
+  "CheckoutCode": "<order_form_id>"
+}
+```
+
+### Exemplo de Resposta
+
+```json
+{
+  "ProgramName": "VTEX IO QA",
+  "HasError": false,
+  "Item": {
+    "Success": true,
+    "CouponCode": "c806711b278a463d8e787f5f5c409f89",
+    "Reward": {
+      "Id": 302,
+      "Title": "10%",
+      "Points": 10,
+      "CanUse": false
+    }
+  }
+}
+```
+
+---
+
+## 5. Remover Recompensa Aplicada
+
+Esta etapa será utilizada para remoção de uma recompensa que foi aplicada ao carrinho.
+
+<Warning>
+  Este método apenas remove a recompensa resgatada do carrinho. Ele não realiza o estorno dos pontos para a carteira do consumidor e nem cancela o resgate da recompensa.
+</Warning>
+
+### Requisição
+
+`POST /pub/widget/rewards/checkout/{reward_redeemed_id}/reverse`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Path Parameters**
+
+<ParamField path="reward_redeemed_id" type="integer" required>
+  ID da recompensa resgatada a ser removida do carrinho.
+</ParamField>
+
+---
+
+## 5.1. Remover Cashback Aplicado
+
+Esta etapa será utilizada para remoção de um _cashback_ que foi aplicada ao carrinho.
+
+<Warning>
+  Este método remove o _cashback_ do carrinho e também realiza o estorno dos pontos de volta a carteira do consumidor, diferentemente da remoção de recompensa.
+</Warning>
+
+### Requisição
+
+`POST /pub/widget/rewards/checkout/cashback/redeem/remove`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Body**
+
+<ParamField body="CheckoutId" type="string" required>
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+<ParamField body="Total" type="number" required>
+  Valor do carrinho (sem descontos ou frete).
+</ParamField>
+
+```json
+{
+  "CheckoutId": "<order_form_id>",
+  "Total": 0
+}
+```
+
+### Exemplo de Resposta
+
+```json
+{
+	"Success": true,
+	"CustomerMessage": "O cashback foi removido com sucesso"
+}
+```
