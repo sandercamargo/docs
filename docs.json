@@ -1,11 +1,11 @@
 {
    "$schema":"https://mintlify.com/docs.json",
    "theme":"mint",
-   "name":"Mint Starter Kit",
+   "name":"BonifiQ Developers",
    "colors":{
-      "primary":"#6631C6",
-      "light":"#F2F9FB",
-      "dark":"#332975"
+      "primary":"#8849f9",
+      "light":"#332975",
+      "dark":"#291D5C"
    },
    "favicon":"/favicon.svg",
    "navigation":{
