@@ -3,17 +3,19 @@ title: "API de Checkout"
 description: "Integre a BonifiQ ao checkout Mobile da sua loja VTEX"
 ---
 
-A BonifiQ já oferece uma solução nativa para integrar diretamente ao Checkout da VTEX no modelo Web. No modelo Mobile, no entanto, requer que seja realizada a integração com as APIs da BonifiQ diremente 
+A BonifiQ já oferece uma solução nativa para integrar diretamente ao Checkout da VTEX no modelo Web. No modelo Mobile, no entanto, requer que seja realizada a integração com as APIs da BonifiQ diretamente.
 
 As integrações abrangem login seguro, consulta e aplicação de recompensa. As chamadas são projetadas para garantir uma experiência segura e eficiente para o consumidor.
 
 ### Principais Etapas
 
 1. **Login seguro:** Autenticação do usuário e obtenção de token de segurança.
-2. **Consulta de recompensas:** Verificação do saldo e regras para utilização da recompensa.
-3. **Aplicação de recompensa:** Resgate de recompensa no carrinho.
-4. **Consulta de recompensa aplicado:** Verificação do estado da recompensa no carrinho.
-5. **Remoção de recompensa:** Remover a recompensa aplicada a um carrinho.
+2. **Configuração do checkout:** Obtenção das configurações do programa de fidelidade.
+3. **Consulta de pontos da compra:** Verificação de quantos pontos o cliente ganhará na compra.
+4. **Consulta de recompensas:** Verificação do saldo e regras para utilização da recompensa.
+5. **Aplicação de recompensa:** Resgate de recompensa no carrinho.
+6. **Consulta de recompensa aplicada:** Verificação do estado da recompensa no carrinho.
+7. **Remoção de recompensa:** Remover a recompensa aplicada a um carrinho.
 
 ---
 
@@ -21,7 +23,7 @@ As integrações abrangem login seguro, consulta e aplicação de recompensa. As
 
 O primeiro passo é realizar o login do usuário e obter o seu token de segurança. Esse token de segurança será utilizado em todas as chamadas subsequentes.
 
-O `sessionToken`e o `segmentToken`deverão ser obtidos mediante login na VTEX.
+O `sessionToken` e o `segmentToken` deverão ser obtidos mediante login na VTEX.
 
 <Note>
   O `SecureToken` tem validade limitada e deve ser atualizado periodicamente.
@@ -52,6 +54,7 @@ O `sessionToken`e o `segmentToken`deverão ser obtidos mediante login na VTEX.
 ```bash
 curl -X POST "https://api.bonifiq.com/pub/widget/vendors/vtex/securelogin" \
   -H "X-Bq-Tenant: {tenant_key}" \
+  -H "Content-Type: application/json" \
   -d '{
     "sessionToken": "<session_token>",
     "segmentToken": "<segment_token>"
@@ -68,6 +71,12 @@ curl -X POST "https://api.bonifiq.com/pub/widget/vendors/vtex/securelogin" \
   <Expandable title="Properties">
     <ResponseField name="Email" type="string">
       E-mail do usuário.
+    </ResponseField>
+    <ResponseField name="Name" type="string">
+      Nome completo do usuário.
+    </ResponseField>
+    <ResponseField name="UserId" type="string">
+      Identificador do usuário.
     </ResponseField>
     <ResponseField name="SecureToken" type="string">
       Token de segurança do usuário, com validade de 60 minutos.
@@ -90,7 +99,137 @@ curl -X POST "https://api.bonifiq.com/pub/widget/vendors/vtex/securelogin" \
 
 ---
 
-## 2. Buscar Recompensas
+## 2. Obter Configuração do Checkout
+
+Essa etapa é utilizada para obter as configurações do programa de fidelidade para o checkout, como cores, nome do programa e se utiliza pontos ou cashback.
+
+### Requisição
+
+`GET /pub/widget/rewards/checkout/configuration`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout/configuration" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}"
+```
+
+### Resposta
+
+<ResponseField name="Text" type="string">
+  Texto customizado para exibição no checkout.
+</ResponseField>
+
+<ResponseField name="ProgramName" type="string">
+  Nome do programa de fidelidade.
+</ResponseField>
+
+<ResponseField name="Color" type="string">
+  Cor principal do programa (hexadecimal).
+</ResponseField>
+
+<ResponseField name="Active" type="boolean">
+  Indica se o programa está ativo.
+</ResponseField>
+
+<ResponseField name="UseCashback" type="boolean">
+  Indica se o programa utiliza cashback.
+</ResponseField>
+
+<ResponseField name="UsePoints" type="boolean">
+  Indica se o programa utiliza pontos.
+</ResponseField>
+
+```json
+{
+  "Text": "Resgate seus pontos!",
+  "ProgramName": "Programa Fidelidade",
+  "Color": "#FF5722",
+  "Active": true,
+  "UseCashback": true,
+  "UsePoints": true
+}
+```
+
+---
+
+## 3. Consultar Pontos da Compra
+
+Essa etapa é utilizada para exibir ao cliente quantos pontos (ou cashback) ele ganhará na compra atual. Ideal para exibir mensagens como "Você ganhará X pontos nesta compra".
+
+### Requisição
+
+`GET /pub/widget/rewards/checkout/purchase-points`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Query Parameters**
+
+<ParamField query="purchaseValue" type="number" required>
+  Valor da compra.
+</ParamField>
+
+<ParamField query="checkoutCode" type="string">
+  Identificador do carrinho (order_form_id). Opcional.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout/purchase-points?purchaseValue=150.00&checkoutCode=abc123" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}"
+```
+
+### Resposta
+
+<ResponseField name="MinValueToReceive" type="number">
+  Valor mínimo da compra para receber pontos.
+</ResponseField>
+
+<ResponseField name="PurchasePoints" type="integer">
+  Quantidade de pontos que o cliente ganhará nesta compra.
+</ResponseField>
+
+<ResponseField name="PurchaseCashback" type="number">
+  Valor de cashback que o cliente ganhará nesta compra (se aplicável).
+</ResponseField>
+
+<ResponseField name="HasPurchaseObjective" type="boolean">
+  Indica se existe um objetivo de compra configurado.
+</ResponseField>
+
+```json
+{
+  "MinValueToReceive": 50.00,
+  "PurchasePoints": 150,
+  "PurchaseCashback": 7.50,
+  "HasPurchaseObjective": true
+}
+```
+
+---
+
+## 4. Buscar Recompensas
 
 Essa etapa será utilizada para a listagem de recompensas disponíveis para o usuário logado.
 
@@ -124,15 +263,51 @@ curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout?purchaseValue=1
 
 ### Resposta
 
+<ResponseField name="ProgramName" type="string">
+  Nome do programa de fidelidade.
+</ResponseField>
+
+<ResponseField name="PointsBalance" type="integer">
+  Saldo de pontos do cliente.
+</ResponseField>
+
+<ResponseField name="HasError" type="boolean">
+  Indica se houve erro na requisição.
+</ResponseField>
+
 <ResponseField name="Item" type="array">
   Lista de recompensas.
 
   <Expandable title="Item Object">
-    <ResponseField name="UseReason" type="number">
-      Motivo da disponibilidade/indisponibilidade.
+    <ResponseField name="Id" type="integer">
+      Identificador da recompensa.
+    </ResponseField>
+    <ResponseField name="Type" type="integer">
+      Tipo da recompensa (0 = Percentual, 1 = Valor fixo).
+    </ResponseField>
+    <ResponseField name="Title" type="string">
+      Título da recompensa.
+    </ResponseField>
+    <ResponseField name="Points" type="integer">
+      Quantidade de pontos necessários para resgatar.
+    </ResponseField>
+    <ResponseField name="Description" type="string">
+      Descrição da recompensa.
+    </ResponseField>
+    <ResponseField name="Enabled" type="boolean">
+      Indica se a recompensa está habilitada.
+    </ResponseField>
+    <ResponseField name="CanUse" type="boolean">
+      Indica se o cliente pode usar esta recompensa.
+    </ResponseField>
+    <ResponseField name="UseReason" type="integer">
+      Motivo da disponibilidade/indisponibilidade (ver tabela abaixo).
     </ResponseField>
     <ResponseField name="RemainingToUse" type="number">
       Valor restante para atingir o mínimo (se `UseReason` for 2).
+    </ResponseField>
+    <ResponseField name="MinValueToUse" type="number">
+      Valor mínimo do carrinho para usar esta recompensa.
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -153,14 +328,14 @@ curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout?purchaseValue=1
       "Enabled": true,
       "CanUse": true,
       "UseReason": 0,
-      "RemainingToUse": 445,
+      "RemainingToUse": 0,
       "MinValueToUse": 0
     }
   ]
 }
 ```
 
-#### Enumeração `RewardCheckoutUseReason`
+#### Enumeração `UseReason`
 
 | Valor | Descrição                               |
 | :---- | :-------------------------------------- |
@@ -175,7 +350,7 @@ curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout?purchaseValue=1
 
 ---
 
-## 2.1. Buscar Recompensas já Resgatadas
+## 4.1. Buscar Recompensas já Resgatadas
 
 Essa etapa será utilizada para a listagem de recompensas já resgatadas e não utilizadas pelo consumidor.
 
@@ -199,7 +374,15 @@ Essa etapa será utilizada para a listagem de recompensas já resgatadas e não 
   Valor da compra.
 </ParamField>
 
-### Exemplo de Resposta
+### Exemplo
+
+```bash
+curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout/redeemed?purchaseValue=100.00" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}"
+```
+
+### Resposta
 
 ```json
 {
@@ -223,7 +406,7 @@ Essa etapa será utilizada para a listagem de recompensas já resgatadas e não 
 
 ---
 
-## 3. Aplicar Recompensa
+## 5. Aplicar Recompensa
 
 Essa etapa será utilizada para a aplicação de recompensas ainda não resgatadas.
 
@@ -253,13 +436,19 @@ Essa etapa será utilizada para a aplicação de recompensas ainda não resgatad
   Identificador do carrinho (order_form_id).
 </ParamField>
 
-```json
-{
-  "OriginalId": "<order_form_id>"
-}
+### Exemplo
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/rewards/redeem/301" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "OriginalId": "<order_form_id>"
+  }'
 ```
 
-### Exemplo de Resposta
+### Resposta
 
 ```json
 {
@@ -281,7 +470,7 @@ Essa etapa será utilizada para a aplicação de recompensas ainda não resgatad
 
 ---
 
-## 3.1. Aplicar Recompensa já Resgatada
+## 5.1. Aplicar Recompensa já Resgatada
 
 Essa etapa será utilizada para a aplicação de recompensas já resgatadas.
 
@@ -315,11 +504,146 @@ Essa etapa será utilizada para a aplicação de recompensas já resgatadas.
   Identificador do carrinho (order_form_id).
 </ParamField>
 
+### Exemplo
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/rewardredeemed/checkout/redeem/1302" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "OriginalId": "<order_form_id>"
+  }'
+```
+
 ---
 
-## 3.2. Aplicar Cashback
+## 6. Validar Cashback
 
-Essa etapa será utilizada para a aplicação de _cashback_.
+Essa etapa é utilizada para verificar se o cliente pode utilizar cashback e qual o valor disponível. Deve ser chamada antes de aplicar o cashback.
+
+### Requisição
+
+`GET /pub/widget/rewards/checkout/cashback/{ORDER_FORM_ID}`
+
+ou
+
+`POST /pub/widget/rewards/checkout/cashback`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Path Parameters (GET)**
+
+<ParamField path="ORDER_FORM_ID" type="string" required>
+  Identificador do carrinho.
+</ParamField>
+
+**Body (POST)**
+
+<ParamField body="CheckoutId" type="string" required>
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+### Exemplo (GET)
+
+```bash
+curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout/cashback/abc123" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}"
+```
+
+### Exemplo (POST)
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/rewards/checkout/cashback" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "CheckoutId": "<order_form_id>"
+  }'
+```
+
+### Resposta
+
+<ResponseField name="CashbackBalance" type="number">
+  Saldo total de cashback do cliente.
+</ResponseField>
+
+<ResponseField name="UsableCashback" type="number">
+  Valor de cashback que pode ser utilizado nesta compra.
+</ResponseField>
+
+<ResponseField name="MaxUsableCashback" type="number">
+  Valor máximo de cashback permitido para esta compra.
+</ResponseField>
+
+<ResponseField name="CashbackRules" type="string">
+  Regras de utilização do cashback (texto para exibição).
+</ResponseField>
+
+<ResponseField name="CanUse" type="boolean">
+  Indica se o cliente pode usar cashback nesta compra.
+</ResponseField>
+
+<ResponseField name="CashbackWillReceiveText" type="string">
+  Texto informando quanto cashback o cliente receberá.
+</ResponseField>
+
+<ResponseField name="RequiredToAddMoreText" type="string">
+  Texto informando quanto falta para usar o cashback.
+</ResponseField>
+
+<ResponseField name="IsCashbackAvailable" type="boolean">
+  Indica se o cashback está disponível.
+</ResponseField>
+
+<ResponseField name="RemainingToTotalCashback" type="number">
+  Valor restante para usar todo o cashback.
+</ResponseField>
+
+<ResponseField name="RemainingToUse" type="number">
+  Valor restante para atingir o mínimo necessário.
+</ResponseField>
+
+<ResponseField name="hasProductsIneligibleForCashback" type="boolean">
+  Indica se há produtos no carrinho que não são elegíveis para cashback.
+</ResponseField>
+
+<ResponseField name="MinValueToUse" type="number">
+  Valor mínimo do carrinho para usar cashback.
+</ResponseField>
+
+```json
+{
+  "CashbackBalance": 50.00,
+  "UsableCashback": 25.00,
+  "MaxUsableCashback": 50.00,
+  "CashbackRules": "Pague até 50% da compra com cashback.",
+  "CanUse": true,
+  "CashbackWillReceiveText": "Você receberá R$ 5,00 de cashback nesta compra",
+  "RequiredToAddMoreText": null,
+  "IsCashbackAvailable": true,
+  "RemainingToTotalCashback": 0,
+  "RemainingToUse": 0,
+  "hasProductsIneligibleForCashback": false,
+  "MinValueToUse": 20.00
+}
+```
+
+---
+
+## 6.1. Aplicar Cashback
+
+Essa etapa será utilizada para a aplicação de cashback.
 
 ### Requisição
 
@@ -346,18 +670,33 @@ Essa etapa será utilizada para a aplicação de _cashback_.
 </ParamField>
 
 <ParamField body="RedeemOrigin" type="integer" required>
-  Sempre 3 para relatórios internos.
+  Origem do resgate. Use `3` para checkout mobile.
 </ParamField>
 
 <ParamField body="Total" type="number" required>
   Valor do carrinho (sem descontos ou frete).
 </ParamField>
 
-### Exemplo de Resposta
+### Exemplo
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/rewards/checkout/cashback/redeem" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "CheckoutId": "<order_form_id>",
+    "CashbackValue": 25.00,
+    "RedeemOrigin": 3,
+    "Total": 150.00
+  }'
+```
+
+### Resposta
 
 ```json
 {
-  "AppliedCashback": 0,
+  "AppliedCashback": 25.00,
   "Success": true,
   "CustomerMessage": "Cashback resgatado com sucesso.",
   "CashbackRules": "Pague até 50% da compra com cashback.",
@@ -368,11 +707,137 @@ Essa etapa será utilizada para a aplicação de _cashback_.
 
 ---
 
-## 4. Consultar Recompensa Aplicada
+## 6.2. Consultar Cashback Aplicado
 
-Esta etapa será utilizada para o caso do cliente saia da tela do checkout e seja necessário reaplicar o estado de recompensa resgatada a ele.
+Essa etapa é utilizada para verificar se há cashback aplicado ao carrinho.
 
 ### Requisição
+
+`GET /pub/widget/rewards/checkout/cashback/{ORDER_FORM_ID}/redeemed`
+
+ou
+
+`POST /pub/widget/rewards/checkout/cashback/redeemed`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Path Parameters (GET)**
+
+<ParamField path="ORDER_FORM_ID" type="string" required>
+  Identificador do carrinho.
+</ParamField>
+
+**Body (POST)**
+
+<ParamField body="CheckoutId" type="string" required>
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+### Exemplo (GET)
+
+```bash
+curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout/cashback/abc123/redeemed" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}"
+```
+
+### Resposta
+
+```json
+{
+  "AppliedCashback": 25.00,
+  "Success": true,
+  "CustomerMessage": "Você está utilizando R$ 25,00 de cashback.",
+  "CashbackRules": "Pague até 50% da compra com cashback.",
+  "InternalMessage": null,
+  "CouponCode": null
+}
+```
+
+---
+
+## 6.3. Atualizar Cashback (Refresh)
+
+Essa etapa é utilizada para recalcular o cashback quando o carrinho é alterado (itens adicionados/removidos).
+
+### Requisição
+
+`POST /pub/widget/rewards/checkout/cashback/{ORDER_FORM_ID}/refresh`
+
+ou
+
+`POST /pub/widget/rewards/checkout/cashback/refresh`
+
+**Headers**
+
+<ParamField header="X-Bq-Tenant" type="string" required>
+  Identificador da loja.
+</ParamField>
+
+<ParamField header="X-Bq-SecureToken" type="string" required>
+  Token do usuário obtido no login seguro.
+</ParamField>
+
+**Path Parameters (primeira opção)**
+
+<ParamField path="ORDER_FORM_ID" type="string" required>
+  Identificador do carrinho.
+</ParamField>
+
+**Body (segunda opção)**
+
+<ParamField body="CheckoutId" type="string" required>
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/rewards/checkout/cashback/refresh" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "CheckoutId": "<order_form_id>"
+  }'
+```
+
+### Resposta
+
+<ResponseField name="CashbackRemoved" type="boolean">
+  Indica se o cashback foi removido (por exemplo, se o carrinho ficou abaixo do mínimo).
+</ResponseField>
+
+<ResponseField name="CustomerMessage" type="string">
+  Mensagem para exibir ao cliente.
+</ResponseField>
+
+```json
+{
+  "CashbackRemoved": false,
+  "CustomerMessage": "Cashback atualizado com sucesso."
+}
+```
+
+---
+
+## 7. Consultar Recompensa Aplicada
+
+Esta etapa será utilizada para o caso do cliente sair da tela do checkout e seja necessário reaplicar o estado de recompensa resgatada a ele.
+
+### Requisição (GET)
+
+`GET /pub/widget/rewards/checkout/{checkoutCode}`
+
+### Requisição (POST)
 
 `POST /pub/widget/rewards/checkout`
 
@@ -386,19 +851,39 @@ Esta etapa será utilizada para o caso do cliente saia da tela do checkout e sej
   Token do usuário obtido no login seguro.
 </ParamField>
 
-**Body**
+**Path Parameters (GET)**
+
+<ParamField path="checkoutCode" type="string" required>
+  Identificador do carrinho (order_form_id).
+</ParamField>
+
+**Body (POST)**
 
 <ParamField body="CheckoutCode" type="string" required>
   Identificador do carrinho (order_form_id).
 </ParamField>
 
-```json
-{
-  "CheckoutCode": "<order_form_id>"
-}
+### Exemplo (GET)
+
+```bash
+curl -X GET "https://api.bonifiq.com/pub/widget/rewards/checkout/abc123" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}"
 ```
 
-### Exemplo de Resposta
+### Exemplo (POST)
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/rewards/checkout" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "CheckoutCode": "<order_form_id>"
+  }'
+```
+
+### Resposta
 
 ```json
 {
@@ -419,7 +904,7 @@ Esta etapa será utilizada para o caso do cliente saia da tela do checkout e sej
 
 ---
 
-## 5. Remover Recompensa Aplicada
+## 8. Remover Recompensa Aplicada
 
 Esta etapa será utilizada para remoção de uma recompensa que foi aplicada ao carrinho.
 
@@ -447,14 +932,22 @@ Esta etapa será utilizada para remoção de uma recompensa que foi aplicada ao 
   ID da recompensa resgatada a ser removida do carrinho.
 </ParamField>
 
+### Exemplo
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/rewards/checkout/1416/reverse" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}"
+```
+
 ---
 
-## 5.1. Remover Cashback Aplicado
+## 8.1. Remover Cashback Aplicado
 
-Esta etapa será utilizada para remoção de um _cashback_ que foi aplicada ao carrinho.
+Esta etapa será utilizada para remoção de um cashback que foi aplicado ao carrinho.
 
 <Warning>
-  Este método remove o _cashback_ do carrinho e também realiza o estorno dos pontos de volta a carteira do consumidor, diferentemente da remoção de recompensa.
+  Este método remove o cashback do carrinho e também realiza o estorno dos pontos de volta à carteira do consumidor, diferentemente da remoção de recompensa.
 </Warning>
 
 ### Requisição
@@ -481,18 +974,32 @@ Esta etapa será utilizada para remoção de um _cashback_ que foi aplicada ao c
   Valor do carrinho (sem descontos ou frete).
 </ParamField>
 
-```json
-{
-  "CheckoutId": "<order_form_id>",
-  "Total": 0
-}
+### Exemplo
+
+```bash
+curl -X POST "https://api.bonifiq.com/pub/widget/rewards/checkout/cashback/redeem/remove" \
+  -H "X-Bq-Tenant: {tenant_key}" \
+  -H "X-Bq-SecureToken: {secure_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "CheckoutId": "<order_form_id>",
+    "Total": 150.00
+  }'
 ```
 
-### Exemplo de Resposta
+### Resposta
+
+<ResponseField name="Success" type="boolean">
+  Indica se a operação foi bem sucedida.
+</ResponseField>
+
+<ResponseField name="CustomerMessage" type="string">
+  Mensagem para exibir ao cliente.
+</ResponseField>
 
 ```json
 {
-	"Success": true,
-	"CustomerMessage": "O cashback foi removido com sucesso"
+  "Success": true,
+  "CustomerMessage": "O cashback foi removido com sucesso"
 }
 ```
