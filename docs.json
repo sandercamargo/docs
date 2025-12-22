@@ -51,12 +51,20 @@
           }
         ]
       },
-      {
-        "tab": "API Backend (Privada)"
-      },
+    
       {
         "tab": "API Backend (Privada)",
-        "href": "https://developers.bonifiq.com.br/api-private/introduction"
+         "groups": [
+          {
+            "group": "API Backend (Privada)",
+            "openapi": {
+            "source": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
+            },
+            "pages": [
+              "api-private/introduction"
+            ]
+          }
+        ]
       },
       {
         "tab": "API Frontend (Pública)",
