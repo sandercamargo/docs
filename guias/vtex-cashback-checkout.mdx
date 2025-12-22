@@ -1,8 +1,9 @@
 ---
 title: "API de Checkout"
-description: "A BonifiQ já oferece uma solução nativa para integrar diretamente ao Checkout da VTEX no modelo Web. No modelo Mobile, no entanto, requer que seja realizada a integração com as APIs da BonifiQ diremente
-"
+description: "Integre a BonifiQ ao checkout Mobile da sua loja VTEX"
 ---
+
+A BonifiQ já oferece uma solução nativa para integrar diretamente ao Checkout da VTEX no modelo Web. No modelo Mobile, no entanto, requer que seja realizada a integração com as APIs da BonifiQ diremente 
 
 As integrações abrangem login seguro, consulta e aplicação de recompensa. As chamadas são projetadas para garantir uma experiência segura e eficiente para o consumidor.
 
@@ -20,7 +21,7 @@ As integrações abrangem login seguro, consulta e aplicação de recompensa. As
 
 O primeiro passo é realizar o login do usuário e obter o seu token de segurança. Esse token de segurança será utilizado em todas as chamadas subsequentes.
 
-O `sessionToken`e o `segmentToken`deverão ser obtidos mediante login na VTEX.  
+O `sessionToken`e o `segmentToken`deverão ser obtidos mediante login na VTEX.
 
 <Note>
   O `SecureToken` tem validade limitada e deve ser atualizado periodicamente.
@@ -110,7 +111,7 @@ Essa etapa será utilizada para a listagem de recompensas disponíveis para o us
 **Query Parameters**
 
 <ParamField query="purchaseValue" type="number" required>
-  Valor da compra.
+  Valor da compra. É utilizado para determinar quais recompensas (e valores) são válidos para o carrinho.
 </ParamField>
 
 ### Exemplo
