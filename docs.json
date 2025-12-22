@@ -118,14 +118,14 @@
    "navbar":{
       "links":[
          {
-            "label":"Support",
-            "href":"mailto:hi@mintlify.com"
+            "label":"Suporte",
+            "href":"https://suporte.bonifiq.com.br"
          }
       ],
       "primary":{
          "type":"button",
          "label":"Dashboard",
-         "href":"https://dashboard.mintlify.com"
+         "href":"https://app.bonifiq.com.br"
       }
    },
    "footer":{
