@@ -1,0 +1,296 @@
+---
+title: "Webhooks - Introdução"
+description: "Primeiros passos e estrutura base dos webhooks do sistema de Fidelidade"
+icon: "book-open"
+---
+
+Este documento descreve a estrutura JSON dos payloads de webhook enviados pelo sistema de Fidelidade para o seu endpoint registrado quando eventos específicos ocorrem.
+
+## Estrutura Base do Webhook
+
+Todas as notificações de webhook entregues ao seu endpoint seguirão este formato JSON básico:
+
+```json
+{
+  "Uuid": "uma_string_identificadora_unica",
+  "Timestamp": "2025-04-15T14:30:00Z",
+  "Topic": "Nome_Real_Do_Topico",
+  "Payload": { ... }
+}
+```
+
+<ResponseField name="Uuid" type="string" required>
+  Identificador único (UUID) para esta tentativa de entrega. Use para idempotência.
+
+  Exemplo: `"f47ac10b-58cc-4372-a567-0e02b2c3d479"`
+</ResponseField>
+
+<ResponseField name="Timestamp" type="string" required>
+  Data e hora (ISO 8601, UTC) em que o evento ocorreu.
+
+  Exemplo: `"2025-04-15T14:30:00.123Z"`
+</ResponseField>
+
+<ResponseField name="Topic" type="string" required>
+  Tipo de evento que ocorreu. Determina a estrutura do `Payload`.
+
+  Exemplo: `"Communication_EarnPurchasePoints"`
+</ResponseField>
+
+<ResponseField name="Payload" type="object" required>
+  Objeto JSON com os detalhes específicos do evento. A estrutura varia conforme o `Topic`.
+</ResponseField>
+
+---
+
+## Objetos de Dados Comuns
+
+Estes objetos JSON aparecem frequentemente dentro de diferentes estruturas de `Payload`:
+
+<AccordionGroup>
+  <Accordion title="Objeto Cliente (Customer)" icon="user">
+    Contém informações sobre o cliente relacionado ao evento.
+
+    ```json
+    {
+      "Email": "cliente@exemplo.com",
+      "Id": "id_original_cliente_123",
+      "Name": "João Silva",
+      "Phone": "+5511999998888",
+      "Document": "12345678900",
+      "BirthdayDate": "1990-05-20T00:00:00Z",
+      "PointsBalance": 1500
+    }
+    ```
+
+    <ResponseField name="Email" type="string" required>
+      Endereço de e-mail principal do cliente
+    </ResponseField>
+    <ResponseField name="Id" type="string" required>
+      Identificador único do cliente no sistema de origem (ex: plataforma e-commerce)
+    </ResponseField>
+    <ResponseField name="Name" type="string" required>
+      Nome completo do cliente
+    </ResponseField>
+    <ResponseField name="Phone" type="string" required>
+      Número de telefone com código do país
+    </ResponseField>
+    <ResponseField name="Document" type="string">
+      Documento de identificação (ex: CPF), se fornecido. Pode ser `null`.
+    </ResponseField>
+    <ResponseField name="BirthdayDate" type="string">
+      Data de nascimento (ISO 8601), se fornecida. Pode ser `null`.
+    </ResponseField>
+    <ResponseField name="PointsBalance" type="number" required>
+      Saldo de pontos _no momento do evento_ (pode não refletir o saldo após o evento)
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Objeto Saldo de Pontos (PointsBalance)" icon="coins">
+    Contém o saldo de pontos e cashback do cliente _após_ o evento ter sido processado.
+
+    ```json
+    {
+      "PointsBalance": 1650,
+      "CashbackBalance": 16.50
+    }
+    ```
+
+    <ResponseField name="PointsBalance" type="number" required>
+      Saldo total de pontos _após_ os efeitos do evento
+    </ResponseField>
+    <ResponseField name="CashbackBalance" type="number" required>
+      Saldo total de cashback (decimal) _após_ os efeitos do evento
+    </ResponseField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Definições de Enum
+
+Vários campos do payload representam tipos enumerados, enviados como **inteiros** no JSON.
+
+<Tabs>
+  <Tab title="CouponType">
+    Indica o tipo de um cupom.
+
+    | Valor | Nome             | Descrição                                 |
+    | ----- | ---------------- | ----------------------------------------- |
+    | `0`   | FixedValue       | Valor fixo (ex: R\$ 10,00 de desconto)    |
+    | `1`   | Percent          | Valor percentual (ex: 10% de desconto)    |
+    | `2`   | FreeShipping     | Frete grátis                              |
+    | `3`   | DiscountShipping | Desconto em frete                         |
+    | `4`   | Others           | Outros tipos (frequentemente pré-gerados) |
+  </Tab>
+  <Tab title="ObjectiveType">
+    Indica a razão ou atividade que disparou o evento (ganho de pontos).
+
+    | Valor | Nome                       | Descrição            |
+    | ----- | -------------------------- | -------------------- |
+    | `0`   | Purchase                   | Fazer uma compra     |
+    | `1`   | Signup                     | Criar conta          |
+    | `2`   | Birthday                   | Fazer aniversário    |
+    | `3`   | Review                     | Fazer um review      |
+    | `4`   | Referral                   | Indique um amigo(a)  |
+    | `5`   | SocialMediaFollowInstagram | Siga no Instagram    |
+    | `6`   | SocialMediaFollowFacebook  | Siga no Facebook     |
+    | `7`   | Quiz                       | Responda um Quiz     |
+    | `8`   | Custom                     | Objetivo Customizado |
+    | `9`   | SocialMediaFollowLinkedin  | Siga no Linkedin     |
+    | `10`  | SocialMediaFollowTikTok    | Siga no TikTok       |
+  </Tab>
+  <Tab title="PointType">
+    Especifica a razão detalhada para uma transação de ponto.
+
+    | Valor | Nome                       | Descrição                        |
+    | ----- | -------------------------- | -------------------------------- |
+    | `0`   | Purchase                   | Fez uma compra                   |
+    | `1`   | Signup                     | Criou conta                      |
+    | `2`   | Birthday                   | Fez aniversário                  |
+    | `3`   | Ordinary                   | Concedido por administrador      |
+    | `4`   | Reward                     | Trocou por recompensa            |
+    | `5`   | Review                     | Fez um review                    |
+    | `6`   | Refund                     | Reembolso de pontos              |
+    | `7`   | Expire                     | Pontos expirados                 |
+    | `8`   | Referral                   | Indicou um amigo                 |
+    | `9`   | SocialMediaFollowFacebook  | Seguiu no Facebook               |
+    | `10`  | SocialMediaFollowInstagram | Seguiu no Instagram              |
+    | `11`  | PartialOrderRefund         | Reembolso parcial de pedido      |
+    | `12`  | Quiz                       | Respondeu um quiz                |
+    | `13`  | CustomObjective            | Pontos de objetivo personalizado |
+    | `14`  | ReferralAffiliate          | Indicação de afiliado            |
+  </Tab>
+  <Tab title="PointAction">
+    Indica se pontos foram adicionados ou removidos.
+
+    | Valor | Nome  | Descrição                        |
+    | ----- | ----- | -------------------------------- |
+    | `0`   | Take  | Pontos removidos ou gastos       |
+    | `1`   | Grant | Pontos adicionados ou concedidos |
+  </Tab>
+</Tabs>
+
+---
+
+## Garantias de Entrega
+
+<CardGroup cols={2}>
+  <Card title="Idempotência" icon="fingerprint">
+    Cada entrega inclui um `Uuid` único. Armazene e verifique para evitar processamento duplicado.
+  </Card>
+  <Card title="Retentativas" icon="rotate">
+    Entregas falhas são retentadas automaticamente com backoff crescente.
+  </Card>
+  <Card title="Timeout" icon="clock">
+    O sistema espera até **30 segundos** por uma resposta HTTP 2xx.
+  </Card>
+  <Card title="Desativação" icon="circle-xmark">
+    Após **5+ falhas consecutivas**, a assinatura pode ser desativada automaticamente.
+  </Card>
+</CardGroup>
+
+<Note>
+  **Recomendações:**
+
+  - Responda com HTTP 2xx idealmente em poucos segundos
+  - Processe o payload de forma assíncrona para evitar timeouts
+  - Monitore falhas e reative assinaturas conforme necessário
+</Note>
+
+---
+
+## Personalização
+
+Ao configurar sua assinatura de webhook, você pode personalizar:
+
+<CardGroup cols={2}>
+  <Card title="Corpo Personalizado" icon="code">
+    Defina uma estrutura JSON customizada usando linguagem de template
+  </Card>
+  <Card title="Variáveis na URL" icon="link">
+    Use variáveis do payload na URL (ex: `https://endpoint.com/{{Customer.Id}}`)
+  </Card>
+  <Card title="Método HTTP" icon="arrow-right-arrow-left">
+    Especifique `PUT`, `POST`, etc. (padrão: `POST`)
+  </Card>
+  <Card title="Cabeçalhos" icon="gear">
+    Configure headers estáticos para autenticação ou roteamento
+  </Card>
+</CardGroup>
+
+---
+
+## Considerações de Segurança
+
+<Warning>
+  Sempre siga as melhores práticas de segurança ao implementar webhooks.
+</Warning>
+
+<Steps>
+  <Step title="Use HTTPS">
+    Sempre use `https://` para criptografia em trânsito
+  </Step>
+  <Step title="Mantenha o sigilo do endpoint">
+    Mantenha a URL do endpoint difícil de adivinhar
+  </Step>
+  <Step title="Configure um segredo compartilhado">
+    Configure um header customizado (ex: `X-Loyalty-Secret`) com um valor secreto e valide em cada requisição recebida
+  </Step>
+</Steps>
+
+---
+
+## Lista de Todos os Tópicos Disponíveis
+
+Referência rápida de todos os **26 tópicos** de webhook disponíveis:
+
+<Tabs>
+  <Tab title="Ganho de Pontos">
+    | Tópico                                         | Descrição                       |
+    | ---------------------------------------------- | ------------------------------- |
+    | `Communication_EarnPurchasePoints`             | Pontos por compra               |
+    | `Communication_EarnBirthdayPoints`             | Pontos por aniversário          |
+    | `Communication_EarnSignupPoints`               | Pontos por cadastro             |
+    | `Communication_EarnReviewPoints`               | Pontos por review               |
+    | `Communication_ReferralCommunicationPoints`    | Pontos por indicação            |
+    | `Communication_EarnQuizPoints`                 | Pontos por quiz                 |
+    | `Communication_EarnCustomObjectivePoints`      | Pontos por objetivo customizado |
+    | `Communication_EarnSocialMediaFollowInstagram` | Pontos por seguir no Instagram  |
+    | `Communication_EarnSocialMediaFollowFacebook`  | Pontos por seguir no Facebook   |
+    | `Communication_EarnSocialMediaFollowLinkedin`  | Pontos por seguir no Linkedin   |
+    | `Communication_EarnSocialMediaFollowTikTok`    | Pontos por seguir no TikTok     |
+  </Tab>
+  <Tab title="Outras Comunicações">
+    | Tópico                                            | Descrição                          |
+    | ------------------------------------------------- | ---------------------------------- |
+    | `Communication_CouponsToUse`                      | Cupom disponível para uso          |
+    | `Communication_RewardCustomRedeemNotification`    | Resgate de recompensa customizada  |
+    | `Communication_CustomerPointChangeNotification`   | Alteração de pontos do cliente     |
+    | `Communication_PointsToUse`                       | Pontos disponíveis para uso        |
+    | `Communication_NotifyExpirablePoints`             | Expiração de pontos                |
+    | `Communication_RedeemPoints`                      | Resgate de pontos por recompensa   |
+    | `Communication_SentOTPToCustomer`                 | Envio de código de validação (OTP) |
+    | `Communication_CustomerTierUpgradeNotification`   | Cliente subiu de nível             |
+    | `Communication_CustomerTierDowngradeNotification` | Cliente desceu de nível            |
+  </Tab>
+  <Tab title="Transações de Pontos">
+    | Tópico                         | Descrição          |
+    | ------------------------------ | ------------------ |
+    | `Point_Add`                    | Ponto adicionado   |
+    | `Point_Update`                 | Ponto atualizado   |
+    | `Point_Removed`                | Ponto removido     |
+    | `EarnPointsReferralAffilidate` | Pontos de afiliado |
+  </Tab>
+  <Tab title="Pedidos">
+    | Tópico        | Descrição         |
+    | ------------- | ----------------- |
+    | `OrderInsert` | Pedido inserido   |
+    | `OrderUpdate` | Pedido atualizado |
+  </Tab>
+</Tabs>
+
+---
+
+<Info>
+  Documentação atualizada em Dezembro de 2025.
+</Info>

@@ -1,0 +1,53 @@
+---
+title: "Webhooks - Afiliados"
+description: "Payloads de webhook para eventos de afiliados do sistema de Fidelidade"
+icon: "handshake"
+---
+
+Este documento descreve os payloads de webhook relacionados a afiliados.
+
+## Pontos de Afiliados
+
+<Accordion title="EarnPointsReferralAffilidate" icon="handshake">
+  Afiliado ganha pontos/cashback por indicação.
+
+  ```json
+  {
+    "Points": 250,
+    "CashbackReceived": 2.50,
+    "OrderPlacementDate": "2025-04-14T16:20:00Z",
+    "Customer": { ... },
+    "PointsBalance": { ... }
+  }
+  ```
+
+  <ResponseField name="Points" type="number" required>
+    Pontos ganhos pelo afiliado
+  </ResponseField>
+  <ResponseField name="CashbackReceived" type="number" required>
+    Cashback ganho pelo afiliado
+  </ResponseField>
+  <ResponseField name="OrderPlacementDate" type="string" required>
+    Data do pedido do cliente indicado
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns) (dados do afiliado)
+  </ResponseField>
+  <ResponseField name="PointsBalance" type="object" required>
+    [Objeto Saldo de Pontos](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+## Tópicos Disponíveis
+
+| Tópico                         | Descrição          |
+| ------------------------------ | ------------------ |
+| `EarnPointsReferralAffilidate` | Pontos de afiliado |
+
+---
+
+<Info>
+  Documentação atualizada em Dezembro de 2025.
+</Info>

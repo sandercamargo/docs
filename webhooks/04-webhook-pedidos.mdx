@@ -1,0 +1,80 @@
+---
+title: "Webhooks - Pedidos"
+description: "Payloads de webhook para eventos de pedidos do sistema de Fidelidade"
+icon: "cart-shopping"
+---
+
+Este documento descreve os payloads de webhook relacionados a pedidos.
+
+## Pedidos
+
+<AccordionGroup>
+  <Accordion title="OrderInsert" icon="plus">
+    Enviado quando um novo pedido é registrado.
+  </Accordion>
+  <Accordion title="OrderUpdate" icon="pen">
+    Enviado quando um pedido existente é atualizado.
+  </Accordion>
+</AccordionGroup>
+
+**Estrutura do Payload (ambos os tópicos):**
+
+```json
+{
+  "Customer": { ... },
+  "OrderId": "pedido_original_456",
+  "BonifiQOrderId": 12345,
+  "OrderPlacementDate": "2025-04-15T10:30:00Z",
+  "OrderTotal": 250.00,
+  "PointsBalance": { ... },
+  "EarnedPoints": 250,
+  "EarnedCashback": 2.50
+}
+```
+
+<ResponseField name="Customer" type="object" required>
+  [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+</ResponseField>
+
+<ResponseField name="OrderId" type="string" required>
+  ID do pedido no sistema de origem
+</ResponseField>
+
+<ResponseField name="BonifiQOrderId" type="number" required>
+  ID interno no sistema BonifiQ
+</ResponseField>
+
+<ResponseField name="OrderPlacementDate" type="string" required>
+  Data do pedido (ISO 8601)
+</ResponseField>
+
+<ResponseField name="OrderTotal" type="number" required>
+  Valor total do pedido
+</ResponseField>
+
+<ResponseField name="PointsBalance" type="object" required>
+  [Objeto Saldo de Pontos](./01-introducao#objetos-de-dados-comuns)
+</ResponseField>
+
+<ResponseField name="EarnedPoints" type="number" required>
+  Pontos ganhos/associados
+</ResponseField>
+
+<ResponseField name="EarnedCashback" type="number" required>
+  Cashback ganho/associado
+</ResponseField>
+
+---
+
+## Tópicos Disponíveis
+
+| Tópico        | Descrição         |
+| ------------- | ----------------- |
+| `OrderInsert` | Pedido inserido   |
+| `OrderUpdate` | Pedido atualizado |
+
+---
+
+<Info>
+  Documentação atualizada em Dezembro de 2025.
+</Info>

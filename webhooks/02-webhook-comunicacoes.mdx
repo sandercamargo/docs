@@ -1,0 +1,392 @@
+---
+title: "Webhooks - Comunicações"
+description: "Payloads de webhook para eventos de comunicação do sistema de Fidelidade"
+icon: "envelope"
+---
+
+Este documento descreve os payloads de webhook relacionados a comunicações com clientes.
+
+## Cupons
+
+<Accordion title="Communication_CouponsToUse" icon="ticket">
+  Enviado quando uma comunicação é disparada referente a cupons disponíveis para o cliente usar.
+
+  ```json
+  {
+    "CouponType": 1,
+    "ValidDateEnd": "2025-12-31T23:59:59Z",
+    "CouponValue": 10.00,
+    "CouponCode": "BEMVINDO10",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="CouponType" type="number" required>
+    Tipo do cupom. Veja [CouponType](./01-introducao#definições-de-enum)
+  </ResponseField>
+  <ResponseField name="ValidDateEnd" type="string">
+    Data de expiração (ISO 8601), se houver. Pode ser `null`.
+  </ResponseField>
+  <ResponseField name="CouponValue" type="number" required>
+    Valor do cupom (ex: `10.0` para 10% ou R\$10,00)
+  </ResponseField>
+  <ResponseField name="CouponCode" type="string" required>
+    Código para resgate
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+## Resgate de Recompensas
+
+<Accordion title="Communication_RewardCustomRedeemNotification" icon="gift">
+  Enviado após um cliente resgatar pontos por uma recompensa personalizada.
+
+  ```json
+  {
+    "Points": 500,
+    "RewardDescription": "Caneca Grátis com Logo",
+    "Coupon": "RESGATECAN123",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="Points" type="number" required>
+    Pontos gastos no resgate
+  </ResponseField>
+  <ResponseField name="RewardDescription" type="string" required>
+    Descrição da recompensa
+  </ResponseField>
+  <ResponseField name="Coupon" type="string">
+    Código de cupom gerado, se aplicável. Pode ser `null`.
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+## Ganho de Pontos
+
+Estes tópicos são enviados quando um cliente ganha pontos. A estrutura varia conforme o tipo de objetivo.
+
+**Campos Base Comuns:**
+
+<ResponseField name="EarnedPoints" type="number" required>
+  Pontos ganhos neste evento
+</ResponseField>
+
+<ResponseField name="ObjectiveType" type="number" required>
+  Tipo de objetivo. Veja [ObjectiveType](./01-introducao#definições-de-enum)
+</ResponseField>
+
+<ResponseField name="Customer" type="object" required>
+  [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+</ResponseField>
+
+<AccordionGroup>
+  <Accordion title="Communication_EarnPurchasePoints" icon="cart-shopping">
+    Ganho de pontos por uma compra.
+
+    ```json
+    {
+      "EarnedPoints": 150,
+      "ObjectiveType": 0,
+      "Customer": { ... },
+      "CashbackEarned": 1.50,
+      "ValidDate": "2026-04-15T00:00:00Z",
+      "OrderDate": "2025-04-15T10:05:00Z",
+      "OrderValue": 150.00,
+      "PercentCashbackEarned": 0.01,
+      "Date": "2025-04-15T10:05:10Z",
+      "OrderId": "pedido_123",
+      "PointId": 98765
+    }
+    ```
+
+    **Campos Adicionais:**
+
+    <ResponseField name="CashbackEarned" type="number">
+      Cashback ganho
+    </ResponseField>
+    <ResponseField name="ValidDate" type="string">
+      Expiração dos pontos/cashback
+    </ResponseField>
+    <ResponseField name="OrderDate" type="string" required>
+      Data do pedido
+    </ResponseField>
+    <ResponseField name="OrderValue" type="number" required>
+      Valor total do pedido
+    </ResponseField>
+    <ResponseField name="PercentCashbackEarned" type="number">
+      Taxa de cashback (ex: `0.01` = 1%)
+    </ResponseField>
+    <ResponseField name="Date" type="string" required>
+      Data do registro do evento
+    </ResponseField>
+    <ResponseField name="OrderId" type="string" required>
+      ID do pedido no sistema de origem
+    </ResponseField>
+    <ResponseField name="PointId" type="number" required>
+      ID interno do registro de ponto
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Communication_EarnBirthdayPoints" icon="cake-candles">
+    Ganho de pontos como bônus de aniversário.
+
+    ```json
+    {
+      "EarnedPoints": 100,
+      "ObjectiveType": 2,
+      "Customer": { ... },
+      "BirthdayPoints": 100,
+      "BirthdayBonification": "Bônus Feliz Aniversário!",
+      "CouponType": 1,
+      "CouponCode": "NIVERPRESENTE",
+      "RedeemUrl": "https://exemplo.com/resgatar-niver"
+    }
+    ```
+
+    **Campos Adicionais:**
+
+    <ResponseField name="BirthdayPoints" type="number" required>
+      Pontos do aniversário
+    </ResponseField>
+    <ResponseField name="BirthdayBonification" type="string">
+      Descrição do bônus
+    </ResponseField>
+    <ResponseField name="CouponType" type="number">
+      Tipo do cupom concedido
+    </ResponseField>
+    <ResponseField name="CouponCode" type="string">
+      Código do cupom
+    </ResponseField>
+    <ResponseField name="RedeemUrl" type="string">
+      URL para resgate
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Communication_EarnSignupPoints" icon="user-plus">
+    Ganho de pontos por cadastro. Usa apenas os campos base comuns.
+  </Accordion>
+  <Accordion title="Communication_EarnReviewPoints" icon="star">
+    Ganho de pontos por review. Usa apenas os campos base comuns.
+  </Accordion>
+  <Accordion title="Communication_ReferralCommunicationPoints" icon="user-group">
+    Ganho de pontos por indicação.
+
+    ```json
+    {
+      "EarnedPoints": 200,
+      "ObjectiveType": 4,
+      "Customer": { ... },
+      "FriendName": "Maria Souza"
+    }
+    ```
+
+    **Campo Adicional:**
+
+    <ResponseField name="FriendName" type="string">
+      Nome do amigo indicado
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Communication_EarnQuizPoints" icon="circle-question">
+    Ganho de pontos por quiz. Usa apenas os campos base comuns.
+  </Accordion>
+  <Accordion title="Communication_EarnCustomObjectivePoints" icon="bullseye">
+    Ganho de pontos por objetivo personalizado. Usa apenas os campos base comuns.
+  </Accordion>
+  <Accordion title="Comunicações de Redes Sociais" icon="share-nodes">
+    Os tópicos abaixo usam a estrutura base comum:
+
+    - `Communication_EarnSocialMediaFollowInstagram` (ObjectiveType: 5)
+    - `Communication_EarnSocialMediaFollowFacebook` (ObjectiveType: 6)
+    - `Communication_EarnSocialMediaFollowLinkedin` (ObjectiveType: 9)
+    - `Communication_EarnSocialMediaFollowTikTok` (ObjectiveType: 10)
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Alteração de Pontos
+
+<Accordion title="Communication_CustomerPointChangeNotification" icon="arrows-rotate">
+  Enviado quando há alteração manual ou diversa no saldo de pontos.
+
+  ```json
+  {
+    "Points": -50,
+    "PointsValidDate": "01/08/2025",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="Points" type="number" required>
+    Pontos da alteração (positivo = adição, negativo = subtração)
+  </ResponseField>
+  <ResponseField name="PointsValidDate" type="string" required>
+    Data de expiração formatada
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+## Pontos Disponíveis
+
+<Accordion title="Communication_PointsToUse" icon="coins">
+  Enviado para informar o cliente sobre seu potencial de resgate.
+
+  ```json
+  {
+    "PointsToUse": 1500,
+    "MaxValueDiscount": "R$ 15,00",
+    "MaxPercentDiscount": "10%",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="PointsToUse" type="number" required>
+    Total de pontos disponíveis
+  </ResponseField>
+  <ResponseField name="MaxValueDiscount" type="string" required>
+    Desconto monetário máximo formatado
+  </ResponseField>
+  <ResponseField name="MaxPercentDiscount" type="string" required>
+    Desconto percentual máximo formatado
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+## Expiração de Pontos
+
+<Accordion title="Communication_NotifyExpirablePoints" icon="hourglass-half">
+  Enviado para notificar sobre pontos próximos da expiração.
+
+  ```json
+  {
+    "PointsToExpire": 250,
+    "ExpirationAt": "2025-07-31T23:59:59Z",
+    "ExpirationDate": "31/07/2025",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="PointsToExpire" type="number" required>
+    Quantidade de pontos que expirarão
+  </ResponseField>
+  <ResponseField name="ExpirationAt" type="string" required>
+    Data/hora de expiração (ISO 8601)
+  </ResponseField>
+  <ResponseField name="ExpirationDate" type="string" required>
+    Data formatada para exibição
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+## Resgate de Pontos
+
+<Accordion title="Communication_RedeemPoints" icon="hand-holding-dollar">
+  Enviado após resgate de pontos por recompensa padrão.
+
+  ```json
+  {
+    "CouponCode": "RESGATE5OFF",
+    "CouponDescription": "Cupom de Desconto R$ 5,00",
+    "Points": 500,
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="CouponCode" type="string" required>
+    Código do cupom gerado
+  </ResponseField>
+  <ResponseField name="CouponDescription" type="string" required>
+    Descrição da recompensa
+  </ResponseField>
+  <ResponseField name="Points" type="number" required>
+    Pontos gastos
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+## OTP (Código de Verificação)
+
+<Accordion title="Communication_SentOTPToCustomer" icon="key">
+  Enviado quando um código OTP é enviado ao cliente.
+
+  <Warning>
+    **Nota de Segurança:** Seja cauteloso ao processar OTPs via webhooks. Garanta que seu endpoint e lógica sejam seguros.
+  </Warning>
+  ```json
+  {
+    "Otp": "123456",
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="Otp" type="string" required>
+    Senha de uso único enviada
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+## Níveis/Tiers
+
+<Accordion title="Communication_CustomerTierUpgradeNotification / Communication_CustomerTierDowngradeNotification" icon="arrow-up-right-dots">
+  Enviado quando o nível de fidelidade do cliente muda.
+
+  ```json
+  {
+    "TierName": "Ouro",
+    "Benefits": [
+      "Frete Grátis em todos os pedidos",
+      "Acesso antecipado a promoções"
+    ],
+    "NextTierTargets": [
+      "Gastar R$ 5000 nos próximos 6 meses"
+    ],
+    "Customer": { ... }
+  }
+  ```
+
+  <ResponseField name="TierName" type="string" required>
+    Nome do novo nível
+  </ResponseField>
+  <ResponseField name="Benefits" type="array" required>
+    Lista de benefícios do nível
+  </ResponseField>
+  <ResponseField name="NextTierTargets" type="array" required>
+    Requisitos para próximo nível (vazio se for o mais alto)
+  </ResponseField>
+  <ResponseField name="Customer" type="object" required>
+    [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+  </ResponseField>
+</Accordion>
+
+---
+
+<Info>
+  Documentação atualizada em Dezembro de 2025.
+</Info>

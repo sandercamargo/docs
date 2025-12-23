@@ -1,0 +1,64 @@
+---
+title: "Webhooks - Transações de Pontos"
+description: "Payloads de webhook para transações de pontos do sistema de Fidelidade"
+icon: "coins"
+---
+
+Este documento descreve os payloads de webhook relacionados a transações de pontos.
+
+## Transações de Pontos
+
+<AccordionGroup>
+  <Accordion title="Point_Add / Point_Update / Point_Removed" icon="database">
+    Alterações no registro de pontos.
+
+    ```json
+    {
+      "Points": 150,
+      "PointType": 0,
+      "PointAction": 1,
+      "Customer": { ... },
+      "PointsBalance": {
+        "PointsBalance": 1650,
+        "CashbackBalance": 16.50
+      },
+      "PointId": 98765
+    }
+    ```
+
+    <ResponseField name="Points" type="number" required>
+      Pontos da transação
+    </ResponseField>
+    <ResponseField name="PointType" type="number" required>
+      Tipo/razão. Veja [PointType](./01-introducao#definições-de-enum)
+    </ResponseField>
+    <ResponseField name="PointAction" type="number" required>
+      Ação. Veja [PointAction](./01-introducao#definições-de-enum)
+    </ResponseField>
+    <ResponseField name="Customer" type="object" required>
+      [Objeto Cliente](./01-introducao#objetos-de-dados-comuns)
+    </ResponseField>
+    <ResponseField name="PointsBalance" type="object" required>
+      [Objeto Saldo de Pontos](./01-introducao#objetos-de-dados-comuns)
+    </ResponseField>
+    <ResponseField name="PointId" type="number" required>
+      ID interno da transação
+    </ResponseField>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Tópicos Disponíveis
+
+| Tópico          | Descrição        |
+| --------------- | ---------------- |
+| `Point_Add`     | Ponto adicionado |
+| `Point_Update`  | Ponto atualizado |
+| `Point_Removed` | Ponto removido   |
+
+---
+
+<Info>
+  Documentação atualizada em Dezembro de 2025.
+</Info>

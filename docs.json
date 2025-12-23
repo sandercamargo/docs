@@ -83,6 +83,30 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Webhooks",
+        "groups": [
+          {
+            "group": "Primeiros Passos",
+            "pages": [
+              "webhooks/introduction",
+              "quickstart",
+              "development"
+            ]
+          },
+          {
+            "group": "Tópicos",
+            "pages": [
+              "webhooks/points",
+              "webhooks/communications",
+              "webhooks/images",
+              "essentials/settings",
+              "essentials/navigation",
+              "essentials/reusable-snippets"
+            ]
+          }
+        ]
       }
     ]
   },
