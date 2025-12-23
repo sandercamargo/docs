@@ -90,7 +90,9 @@
           {
             "group": "Primeiros Passos",
             "pages": [
-              "webhooks/01-introducao"
+              "webhooks/01-introducao",
+                            "webhooks/02-configuracao"
+
             ]
           },
           {

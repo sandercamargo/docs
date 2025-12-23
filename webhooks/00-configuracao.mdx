@@ -1,0 +1,269 @@
+---
+title: "Webhooks - Configuração"
+description: "Como configurar webhooks na plataforma BonifiQ"
+icon: "gear"
+---
+
+Este documento explica como criar e configurar uma assinatura de webhook na plataforma BonifiQ.
+
+## Criando uma Assinatura de Webhook
+
+Para receber notificações de eventos do sistema de fidelidade, você precisa criar uma assinatura de webhook. Cada assinatura define quais eventos você deseja receber e para onde eles devem ser enviados.
+
+### Campos de Configuração
+
+<ResponseField name="Name" type="string" required>
+  Nome identificador da assinatura de webhook. Use um nome descritivo que ajude a identificar o propósito desta assinatura.
+
+  **Exemplo:** `"Integração CRM"`, `"Notificações de Pedidos"`, `"Sincronização ERP"`
+</ResponseField>
+
+<ResponseField name="EndpointUrl" type="string" required>
+  URL do endpoint que receberá as notificações de webhook. Deve ser uma URL HTTPS válida e acessível publicamente.
+
+  **Exemplo:** `"https://sua-api.com/webhooks/bonifiq"`
+
+  <Warning>
+    Sempre use HTTPS para garantir a segurança dos dados em trânsito.
+  </Warning>
+</ResponseField>
+
+<ResponseField name="ManagerEmail" type="string" required>
+  E-mail do responsável pela assinatura. Este e-mail será notificado em caso de problemas com a entrega dos webhooks, como falhas consecutivas.
+
+  **Exemplo:** `"dev-team@suaempresa.com"`
+</ResponseField>
+
+<ResponseField name="Topics" type="array" required>
+  Lista de tópicos (eventos) que esta assinatura deve receber. Você pode selecionar um ou mais tópicos.
+
+  Consulte a [lista completa de tópicos](./01-introducao#lista-de-todos-os-tópicos-disponíveis) para ver todas as opções disponíveis.
+</ResponseField>
+
+<ResponseField name="IsActive" type="boolean" required>
+  Define se a assinatura está ativa. Apenas assinaturas ativas receberão notificações.
+
+  - `true` - Assinatura ativa, receberá webhooks
+  - `false` - Assinatura pausada, não receberá webhooks
+</ResponseField>
+
+---
+
+## Opções Avançadas
+
+### Headers Personalizados
+
+<ResponseField name="Headers" type="array">
+  Lista de cabeçalhos HTTP personalizados que serão enviados junto com cada requisição de webhook. Útil para autenticação e roteamento.
+
+  ```json
+  {
+    "Headers": [
+      { "Name": "X-Loyalty-Secret", "Value": "seu-token-secreto-aqui" },
+      { "Name": "X-Custom-Header", "Value": "valor-personalizado" }
+    ]
+  }
+  ```
+</ResponseField>
+
+<Tip>
+  **Recomendação de Segurança:** Configure um header de autenticação (como `X-Loyalty-Secret` ou `Authorization`) com um valor secreto e valide-o em cada requisição recebida no seu endpoint.
+</Tip>
+
+---
+
+### Método HTTP Personalizado
+
+<ResponseField name="CustomMethod" type="string">
+  Método HTTP a ser usado na requisição. Se não especificado, o padrão é `POST`.
+
+  **Valores aceitos:** `POST`, `PUT`, `PATCH`
+
+  ```json
+  {
+    "CustomMethod": "PUT"
+  }
+  ```
+</ResponseField>
+
+---
+
+### Corpo Personalizado (Custom Body)
+
+<ResponseField name="UseCustomBody" type="boolean">
+  Define se deve usar um corpo personalizado em vez do payload padrão.
+
+  - `true` - Usa o template definido em `CustomBody`
+  - `false` - Usa a estrutura padrão do payload (recomendado)
+</ResponseField>
+
+<ResponseField name="CustomBody" type="string">
+  Template JSON personalizado para o corpo da requisição. Permite formatar o payload de acordo com as necessidades do seu sistema.
+
+  Use a sintaxe de template com `{{campo}}` para inserir valores dinâmicos do payload original.
+</ResponseField>
+
+#### Variáveis Disponíveis no Template
+
+Você pode usar variáveis do payload original no seu template personalizado:
+
+```json
+{
+  "meu_campo_customizado": "{{Customer.Email}}",
+  "pontos": "{{EarnedPoints}}",
+  "pedido_id": "{{OrderId}}",
+  "data_evento": "{{Timestamp}}"
+}
+```
+
+**Variáveis comuns:**
+
+| Variável | Descrição |
+|----------|-----------|
+| `{{Customer.Email}}` | E-mail do cliente |
+| `{{Customer.Name}}` | Nome do cliente |
+| `{{Customer.Id}}` | ID do cliente |
+| `{{Customer.Phone}}` | Telefone do cliente |
+| `{{Customer.Document}}` | Documento do cliente |
+| `{{Customer.PointsBalance}}` | Saldo de pontos |
+| `{{EarnedPoints}}` | Pontos ganhos (em eventos de ganho) |
+| `{{OrderId}}` | ID do pedido |
+| `{{OrderTotal}}` | Valor do pedido |
+| `{{CouponCode}}` | Código do cupom |
+| `{{Timestamp}}` | Data/hora do evento |
+| `{{Topic}}` | Tópico do evento |
+| `{{Uuid}}` | ID único do webhook |
+
+<Note>
+  Você também pode usar variáveis na URL do endpoint! 
+  
+  **Exemplo:** `https://sua-api.com/clientes/{{Customer.Id}}/webhooks`
+</Note>
+
+---
+
+## Exemplo de Configuração Completa
+
+```json
+{
+  "Name": "Integração CRM Principal",
+  "EndpointUrl": "https://api.meucrm.com/webhooks/bonifiq",
+  "ManagerEmail": "integracao@minhaempresa.com",
+  "IsActive": true,
+  "Topics": [
+    { "Topic": "Communication_EarnPurchasePoints" },
+    { "Topic": "OrderInsert" },
+    { "Topic": "OrderUpdate" },
+    { "Topic": "Point_Add" }
+  ],
+  "Headers": [
+    { "Name": "Authorization", "Value": "Bearer meu-token-secreto" },
+    { "Name": "Content-Type", "Value": "application/json" }
+  ],
+  "CustomMethod": "POST",
+  "UseCustomBody": false
+}
+```
+
+---
+
+## Exemplo com Corpo Personalizado
+
+```json
+{
+  "Name": "Webhook para Sistema Legado",
+  "EndpointUrl": "https://legado.empresa.com/api/receber",
+  "ManagerEmail": "ti@empresa.com",
+  "IsActive": true,
+  "Topics": [
+    { "Topic": "OrderInsert" }
+  ],
+  "Headers": [
+    { "Name": "X-API-Key", "Value": "chave-api-legado" }
+  ],
+  "UseCustomBody": true,
+  "CustomBody": "{ \"tipo\": \"novo_pedido\", \"email_cliente\": \"{{Customer.Email}}\", \"valor\": {{OrderTotal}}, \"pontos_ganhos\": {{EarnedPoints}} }"
+}
+```
+
+---
+
+## Lista de Tópicos Disponíveis
+
+Selecione os eventos que você deseja receber:
+
+<Tabs>
+  <Tab title="Transações de Pontos">
+    | Valor Enum | Tópico | Descrição |
+    |------------|--------|-----------|
+    | `0` | `Point_Add` | Ponto adicionado |
+    | `1` | `Point_Removed` | Ponto removido |
+    | `2` | `Point_Update` | Ponto atualizado |
+  </Tab>
+  <Tab title="Pedidos">
+    | Valor Enum | Tópico | Descrição |
+    |------------|--------|-----------|
+    | `22` | `OrderInsert` | Pedido inserido |
+    | `23` | `OrderUpdate` | Pedido atualizado |
+  </Tab>
+  <Tab title="Ganho de Pontos">
+    | Valor Enum | Tópico | Descrição |
+    |------------|--------|-----------|
+    | `3` | `Communication_EarnPurchasePoints` | Pontos por compras |
+    | `4` | `Communication_EarnBirthdayPoints` | Pontos por aniversário |
+    | `5` | `Communication_EarnSignupPoints` | Pontos por cadastro |
+    | `6` | `Communication_EarnReviewPoints` | Pontos por review |
+    | `7` | `Communication_ReferralCommunicationPoints` | Pontos por indicação |
+    | `19` | `Communication_EarnQuizPoints` | Pontos por quiz |
+    | `20` | `Communication_EarnCustomObjectivePoints` | Objetivo customizado |
+  </Tab>
+  <Tab title="Redes Sociais">
+    | Valor Enum | Tópico | Descrição |
+    |------------|--------|-----------|
+    | `17` | `Communication_EarnSocialMediaFollowFacebook` | Seguir no Facebook |
+    | `18` | `Communication_EarnSocialMediaFollowInstagram` | Seguir no Instagram |
+    | `24` | `Communication_EarnSocialMediaFollowLinkedin` | Seguir no Linkedin |
+    | `25` | `Communication_EarnSocialMediaFollowTikTok` | Seguir no TikTok |
+  </Tab>
+  <Tab title="Resgates e Cupons">
+    | Valor Enum | Tópico | Descrição |
+    |------------|--------|-----------|
+    | `8` | `Communication_RedeemPoints` | Troca de pontos por recompensa |
+    | `11` | `Communication_CouponsToUse` | Cupom disponível para uso |
+    | `12` | `Communication_RewardCustomRedeemNotification` | Recompensa customizada |
+  </Tab>
+  <Tab title="Notificações">
+    | Valor Enum | Tópico | Descrição |
+    |------------|--------|-----------|
+    | `9` | `Communication_NotifyExpirablePoints` | Expiração de pontos |
+    | `10` | `Communication_PointsToUse` | Pontos disponíveis |
+    | `13` | `Communication_CustomerPointChangeNotification` | Alteração de pontos |
+    | `14` | `Communication_CustomerTierUpgradeNotification` | Subiu de nível |
+    | `15` | `Communication_CustomerTierDowngradeNotification` | Desceu de nível |
+    | `16` | `Communication_SentOTPToCustomer` | Código de validação (OTP) |
+  </Tab>
+  <Tab title="Afiliados">
+    | Valor Enum | Tópico | Descrição |
+    |------------|--------|-----------|
+    | `21` | `EarnPointsReferralAffilidate` | Pontos de afiliado |
+  </Tab>
+</Tabs>
+
+---
+
+## Boas Práticas
+
+<CardGroup cols={2}>
+  <Card title="Use HTTPS" icon="lock">
+    Sempre configure endpoints com HTTPS para garantir a segurança dos dados.
+  </Card>
+  <Card title="Implemente Autenticação" icon="key">
+    Configure headers de autenticação e valide-os no seu endpoint.
+  </Card>
+  <Card title="Responda Rapidamente" icon="bolt">
+    Retorne HTTP 2xx em poucos segundos. Processe de forma assíncrona.
+  </Card>
+  <Card title="Implemente Idempotência" icon="fingerprint">
+    Use o `Uuid` do webhook para evitar processamento duplicado.
+  </Card>
+</CardGroup>
