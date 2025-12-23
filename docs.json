@@ -58,7 +58,9 @@
           {
             "group": "API Backend (Privada)",
             "openapi": {
-            "source": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json"
+            "source": "https://api.bonifiq.com.br/swagger/Private%20APIs/swagger.json",
+            "directory": "api/private"
+
             },
             "pages": [
               "api-private/introduction"
@@ -72,7 +74,9 @@
           {
             "group": "API Frontend (Pública)",
             "openapi": {
-              "source": "https://api.bonifiq.com.br/swagger/Public%20APIs/swagger.json"
+              "source": "https://api.bonifiq.com.br/swagger/Public%20APIs/swagger.json",
+            "directory": "api/public"
+
             },
             "pages": [
               "api-public/introduction"
