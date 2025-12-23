@@ -1,5 +1,5 @@
 ---
-title: "Webhooks - Configuração"
+title: "Configuração"
 description: "Como configurar webhooks na plataforma BonifiQ"
 icon: "gear"
 ---
@@ -118,25 +118,25 @@ Você pode usar variáveis do payload original no seu template personalizado:
 
 **Variáveis comuns:**
 
-| Variável | Descrição |
-|----------|-----------|
-| `{{Customer.Email}}` | E-mail do cliente |
-| `{{Customer.Name}}` | Nome do cliente |
-| `{{Customer.Id}}` | ID do cliente |
-| `{{Customer.Phone}}` | Telefone do cliente |
-| `{{Customer.Document}}` | Documento do cliente |
-| `{{Customer.PointsBalance}}` | Saldo de pontos |
-| `{{EarnedPoints}}` | Pontos ganhos (em eventos de ganho) |
-| `{{OrderId}}` | ID do pedido |
-| `{{OrderTotal}}` | Valor do pedido |
-| `{{CouponCode}}` | Código do cupom |
-| `{{Timestamp}}` | Data/hora do evento |
-| `{{Topic}}` | Tópico do evento |
-| `{{Uuid}}` | ID único do webhook |
+| Variável                     | Descrição                           |
+| ---------------------------- | ----------------------------------- |
+| `{{Customer.Email}}`         | E-mail do cliente                   |
+| `{{Customer.Name}}`          | Nome do cliente                     |
+| `{{Customer.Id}}`            | ID do cliente                       |
+| `{{Customer.Phone}}`         | Telefone do cliente                 |
+| `{{Customer.Document}}`      | Documento do cliente                |
+| `{{Customer.PointsBalance}}` | Saldo de pontos                     |
+| `{{EarnedPoints}}`           | Pontos ganhos (em eventos de ganho) |
+| `{{OrderId}}`                | ID do pedido                        |
+| `{{OrderTotal}}`             | Valor do pedido                     |
+| `{{CouponCode}}`             | Código do cupom                     |
+| `{{Timestamp}}`              | Data/hora do evento                 |
+| `{{Topic}}`                  | Tópico do evento                    |
+| `{{Uuid}}`                   | ID único do webhook                 |
 
 <Note>
-  Você também pode usar variáveis na URL do endpoint! 
-  
+  Você também pode usar variáveis na URL do endpoint!
+
   **Exemplo:** `https://sua-api.com/clientes/{{Customer.Id}}/webhooks`
 </Note>
 
@@ -194,58 +194,58 @@ Selecione os eventos que você deseja receber:
 
 <Tabs>
   <Tab title="Transações de Pontos">
-    | Valor Enum | Tópico | Descrição |
-    |------------|--------|-----------|
-    | `0` | `Point_Add` | Ponto adicionado |
-    | `1` | `Point_Removed` | Ponto removido |
-    | `2` | `Point_Update` | Ponto atualizado |
+    | Valor Enum | Tópico          | Descrição        |
+    | ---------- | --------------- | ---------------- |
+    | `0`        | `Point_Add`     | Ponto adicionado |
+    | `1`        | `Point_Removed` | Ponto removido   |
+    | `2`        | `Point_Update`  | Ponto atualizado |
   </Tab>
   <Tab title="Pedidos">
-    | Valor Enum | Tópico | Descrição |
-    |------------|--------|-----------|
-    | `22` | `OrderInsert` | Pedido inserido |
-    | `23` | `OrderUpdate` | Pedido atualizado |
+    | Valor Enum | Tópico        | Descrição         |
+    | ---------- | ------------- | ----------------- |
+    | `22`       | `OrderInsert` | Pedido inserido   |
+    | `23`       | `OrderUpdate` | Pedido atualizado |
   </Tab>
   <Tab title="Ganho de Pontos">
-    | Valor Enum | Tópico | Descrição |
-    |------------|--------|-----------|
-    | `3` | `Communication_EarnPurchasePoints` | Pontos por compras |
-    | `4` | `Communication_EarnBirthdayPoints` | Pontos por aniversário |
-    | `5` | `Communication_EarnSignupPoints` | Pontos por cadastro |
-    | `6` | `Communication_EarnReviewPoints` | Pontos por review |
-    | `7` | `Communication_ReferralCommunicationPoints` | Pontos por indicação |
-    | `19` | `Communication_EarnQuizPoints` | Pontos por quiz |
-    | `20` | `Communication_EarnCustomObjectivePoints` | Objetivo customizado |
+    | Valor Enum | Tópico                                      | Descrição              |
+    | ---------- | ------------------------------------------- | ---------------------- |
+    | `3`        | `Communication_EarnPurchasePoints`          | Pontos por compras     |
+    | `4`        | `Communication_EarnBirthdayPoints`          | Pontos por aniversário |
+    | `5`        | `Communication_EarnSignupPoints`            | Pontos por cadastro    |
+    | `6`        | `Communication_EarnReviewPoints`            | Pontos por review      |
+    | `7`        | `Communication_ReferralCommunicationPoints` | Pontos por indicação   |
+    | `19`       | `Communication_EarnQuizPoints`              | Pontos por quiz        |
+    | `20`       | `Communication_EarnCustomObjectivePoints`   | Objetivo customizado   |
   </Tab>
   <Tab title="Redes Sociais">
-    | Valor Enum | Tópico | Descrição |
-    |------------|--------|-----------|
-    | `17` | `Communication_EarnSocialMediaFollowFacebook` | Seguir no Facebook |
-    | `18` | `Communication_EarnSocialMediaFollowInstagram` | Seguir no Instagram |
-    | `24` | `Communication_EarnSocialMediaFollowLinkedin` | Seguir no Linkedin |
-    | `25` | `Communication_EarnSocialMediaFollowTikTok` | Seguir no TikTok |
+    | Valor Enum | Tópico                                         | Descrição           |
+    | ---------- | ---------------------------------------------- | ------------------- |
+    | `17`       | `Communication_EarnSocialMediaFollowFacebook`  | Seguir no Facebook  |
+    | `18`       | `Communication_EarnSocialMediaFollowInstagram` | Seguir no Instagram |
+    | `24`       | `Communication_EarnSocialMediaFollowLinkedin`  | Seguir no Linkedin  |
+    | `25`       | `Communication_EarnSocialMediaFollowTikTok`    | Seguir no TikTok    |
   </Tab>
   <Tab title="Resgates e Cupons">
-    | Valor Enum | Tópico | Descrição |
-    |------------|--------|-----------|
-    | `8` | `Communication_RedeemPoints` | Troca de pontos por recompensa |
-    | `11` | `Communication_CouponsToUse` | Cupom disponível para uso |
-    | `12` | `Communication_RewardCustomRedeemNotification` | Recompensa customizada |
+    | Valor Enum | Tópico                                         | Descrição                      |
+    | ---------- | ---------------------------------------------- | ------------------------------ |
+    | `8`        | `Communication_RedeemPoints`                   | Troca de pontos por recompensa |
+    | `11`       | `Communication_CouponsToUse`                   | Cupom disponível para uso      |
+    | `12`       | `Communication_RewardCustomRedeemNotification` | Recompensa customizada         |
   </Tab>
   <Tab title="Notificações">
-    | Valor Enum | Tópico | Descrição |
-    |------------|--------|-----------|
-    | `9` | `Communication_NotifyExpirablePoints` | Expiração de pontos |
-    | `10` | `Communication_PointsToUse` | Pontos disponíveis |
-    | `13` | `Communication_CustomerPointChangeNotification` | Alteração de pontos |
-    | `14` | `Communication_CustomerTierUpgradeNotification` | Subiu de nível |
-    | `15` | `Communication_CustomerTierDowngradeNotification` | Desceu de nível |
-    | `16` | `Communication_SentOTPToCustomer` | Código de validação (OTP) |
+    | Valor Enum | Tópico                                            | Descrição                 |
+    | ---------- | ------------------------------------------------- | ------------------------- |
+    | `9`        | `Communication_NotifyExpirablePoints`             | Expiração de pontos       |
+    | `10`       | `Communication_PointsToUse`                       | Pontos disponíveis        |
+    | `13`       | `Communication_CustomerPointChangeNotification`   | Alteração de pontos       |
+    | `14`       | `Communication_CustomerTierUpgradeNotification`   | Subiu de nível            |
+    | `15`       | `Communication_CustomerTierDowngradeNotification` | Desceu de nível           |
+    | `16`       | `Communication_SentOTPToCustomer`                 | Código de validação (OTP) |
   </Tab>
   <Tab title="Afiliados">
-    | Valor Enum | Tópico | Descrição |
-    |------------|--------|-----------|
-    | `21` | `EarnPointsReferralAffilidate` | Pontos de afiliado |
+    | Valor Enum | Tópico                         | Descrição          |
+    | ---------- | ------------------------------ | ------------------ |
+    | `21`       | `EarnPointsReferralAffilidate` | Pontos de afiliado |
   </Tab>
 </Tabs>
 
