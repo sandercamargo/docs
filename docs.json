@@ -91,7 +91,7 @@
             "group": "Primeiros Passos",
             "pages": [
               "webhooks/01-introducao",
-                            "webhooks/02-configuracao"
+                            "webhooks/00-configuracao"
 
             ]
           },
