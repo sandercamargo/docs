@@ -92,6 +92,18 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Guias",
+        "groups": [
+          {
+            "group": "Guias de Integração",
+            "pages": [
+              "guias/pos-integration"
+
+            ]
+          }
+        ]
       }
     ]
   },
