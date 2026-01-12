@@ -99,6 +99,7 @@
           {
             "group": "Guias de Integração",
             "pages": [
+              "guias/index",
               "guias/pos-integration"
 
             ]
