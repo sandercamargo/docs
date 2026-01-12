@@ -1,6 +1,6 @@
 ---
-title: 'Integração com PDV (Point of Sale)'
-description: 'Guia completo para integração de sistemas de PDV com a BonifiQ'
+title: "Integração com PDV (Point of Sale)"
+description: "Guia completo para integração de sistemas de PDV com a BonifiQ"
 ---
 
 ## Introdução
@@ -9,21 +9,133 @@ A integração com PDV permite que sistemas de ponto de venda utilizem os recurs
 
 <Info>
   **Base URL da API**: `https://api.bonifiq.com.br/v1/pvt/POS`
-  
+
   Consulte também a [documentação interativa Swagger](https://api.bonifiq.com.br/apidocs/private/index.html?url=/swagger/Private%20APIs/swagger.json#/POS)
 </Info>
 
 ## Autenticação
 
-Todas as requisições para a API de PDV devem incluir as credenciais de autenticação no header:
+Todas as requisições para a API de PDV devem incluir as credenciais de autenticação no header usando **Basic Authentication**.
+
+### Obtendo suas Credenciais
+
+Para obter suas credenciais de API, acesse o painel administrativo da BonifiQ:
+
+<Steps>
+  <Step title="Acesse o Menu API">
+    No painel administrativo, navegue até o menu **API** na barra lateral.
+  </Step>
+  <Step title="Criar Nova Credencial">
+    Clique no botão **\+ CREDENCIAL** para criar uma nova credencial de API.
+  </Step>
+  <Step title="Selecione o Tipo Privada">
+    Escolha a opção **Privada** para gerar credenciais de acesso à API privada (POS).
+  </Step>
+  <Step title="Copie as Credenciais">
+    Após a criação, você receberá um **usuário** e **senha** de API. Guarde essas informações em local seguro.
+  </Step>
+</Steps>
+
+### Enviando a Autenticação
+
+A autenticação deve ser enviada no header `Authorization` usando o esquema **Basic Auth**. O valor deve ser a codificação Base64 das credenciais no formato `usuario:senha`.
 
 ```bash
-Authorization: Bearer {seu_token_de_acesso}
-X-Tenant-Id: {seu_tenant_id}
+Authorization: Basic {base64(usuario:senha)}
 ```
 
+#### Exemplo de Implementação
+
+<CodeGroup>
+
+```bash cURL
+# Credenciais de exemplo:
+# Usuário: meu_usuario_api
+# Senha: minha_senha_secreta
+
+# Codificação Base64 de "meu_usuario_api:minha_senha_secreta"
+# Resultado: bWV1X3VzdWFyaW9fYXBpOm1pbmhhX3NlbmhhX3NlY3JldGE=
+
+curl -X POST "https://api.bonifiq.com.br/v1/pvt/POS/rewards/available" \
+  -H "Authorization: Basic bWV1X3VzdWFyaW9fYXBpOm1pbmhhX3NlbmhhX3NlY3JldGE=" \
+  -H "Content-Type: application/json" \
+  -d '{"customerId": "12345678900", "purchaseValue": 150.00}'
+```
+
+
+```javascript JavaScript
+const usuario = 'meu_usuario_api';
+const senha = 'minha_senha_secreta';
+
+// Codifica as credenciais em Base64
+const credenciais = btoa(`${usuario}:${senha}`);
+
+const response = await fetch('https://api.bonifiq.com.br/v1/pvt/POS/rewards/available', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Basic ${credenciais}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    customerId: '12345678900',
+    purchaseValue: 150.00
+  })
+});
+```
+
+
+```csharp C#
+var usuario = "meu_usuario_api";
+var senha = "minha_senha_secreta";
+
+// Codifica as credenciais em Base64
+var credenciais = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{usuario}:{senha}"));
+
+var client = new HttpClient();
+client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credenciais);
+
+var content = new StringContent(
+    JsonSerializer.Serialize(new { customerId = "12345678900", purchaseValue = 150.00 }),
+    Encoding.UTF8,
+    "application/json"
+);
+
+var response = await client.PostAsync("https://api.bonifiq.com.br/v1/pvt/POS/rewards/available", content);
+```
+
+
+```python Python
+import base64
+import requests
+
+usuario = 'meu_usuario_api'
+senha = 'minha_senha_secreta'
+
+# Codifica as credenciais em Base64
+credenciais = base64.b64encode(f'{usuario}:{senha}'.encode()).decode()
+
+response = requests.post(
+    'https://api.bonifiq.com.br/v1/pvt/POS/rewards/available',
+    headers={
+        'Authorization': f'Basic {credenciais}',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'customerId': '12345678900',
+        'purchaseValue': 150.00
+    }
+)
+```
+
+</CodeGroup>
+
 <Warning>
-  Mantenha suas credenciais em segurança. Nunca exponha tokens de acesso em código client-side.
+  **Segurança das Credenciais**
+
+  - Nunca exponha suas credenciais em código client-side (frontend, aplicativos mobile, etc.)
+  - Armazene as credenciais em variáveis de ambiente ou cofres de segredos
+  - Não versione arquivos contendo credenciais em repositórios de código
+  - Rotacione as credenciais periodicamente
 </Warning>
 
 ---
@@ -83,7 +195,7 @@ O fluxo pode ser dividido em três etapas principais:
 
 ### 1. Consultar Recompensas Disponíveis
 
-<ParamField path="POST" method="POST" path="/rewards/available">
+<ParamField path="/rewards/available">
   Retorna a lista de recompensas disponíveis para um cliente específico.
 </ParamField>
 
@@ -92,8 +204,7 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
 #### Request Body
 
 <ParamField body="CustomerId" type="string" required>
-  Identificador do cliente. Pode ser e-mail ou documento (CPF/CNPJ). 
-  **Importante**: Se for documento, utilize apenas números.
+  Identificador do cliente. Pode ser e-mail ou documento (CPF/CNPJ). **Importante**: Se for documento, utilize apenas números.
 </ParamField>
 
 <ParamField body="PurchaseValue" type="decimal" required>
@@ -101,12 +212,11 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
 </ParamField>
 
 <ParamField body="DiscountValue" type="decimal">
-  Valor de desconto já aplicado no pedido (que não seja da BonifiQ). 
-  A BonifiQ usa esta informação para retornar apenas recompensas que podem ser acumuladas com outros descontos.
-  Se não houver desconto, envie `null` ou `0`.
+  Valor de desconto já aplicado no pedido (que não seja da BonifiQ). A BonifiQ usa esta informação para retornar apenas recompensas que podem ser acumuladas com outros descontos. Se não houver desconto, envie `null` ou `0`.
 </ParamField>
 
 <CodeGroup>
+
 ```json Request
 {
   "customerId": "12345678900",
@@ -114,6 +224,7 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
   "discountValue": null
 }
 ```
+
 
 ```json Response - Com Recompensas
 {
@@ -170,6 +281,7 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
 }
 ```
 
+
 ```json Response - Sem Recompensas
 {
   "hasRewards": false,
@@ -181,6 +293,7 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
   "rewards": []
 }
 ```
+
 </CodeGroup>
 
 #### Campos de Resposta Importantes
@@ -190,8 +303,7 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
 </ResponseField>
 
 <ResponseField name="shouldValidateCustomer" type="boolean">
-  Se `true`, o fluxo deve seguir para a validação do cliente (envio de código PIN).
-  Se `false`, a validação pode ser pulada.
+  Se `true`, o fluxo deve seguir para a validação do cliente (envio de código PIN). Se `false`, a validação pode ser pulada.
 </ResponseField>
 
 <ResponseField name="availablePoints" type="integer">
@@ -217,22 +329,23 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
 </ResponseField>
 
 <ResponseField name="rewards[].title" type="string">
-  Título amigável da recompensa para exibição ao usuário.
-  Exemplos: "R$50,00 de desconto", "10% de desconto", "Usar Cashback"
+  Título amigável da recompensa para exibição ao usuário. Exemplos: "R\$50,00 de desconto", "10% de desconto", "Usar Cashback"
 </ResponseField>
 
 <ResponseField name="rewards[].rewardType" type="enum">
   Tipo da recompensa:
+
   - `0` - Desconto Percentual (ex: 15% off)
-  - `1` - Desconto em Valor (ex: R$10,00)
+  - `1` - Desconto em Valor (ex: R\$10,00)
   - `3` - Cashback (ex: R$10,00 em compras acima de R$30,00)
   - `4` - Recompensa Customizada (ex: Brinde)
 </ResponseField>
 
 <ResponseField name="rewards[].value" type="decimal">
   Valor da recompensa:
+
   - **Desconto Percentual**: Valor do percentual (ex: `10.00` para 10%)
-  - **Desconto em Valor**: Valor em reais (ex: `10.00` para R$10,00)
+  - **Desconto em Valor**: Valor em reais (ex: `10.00` para R\$10,00)
   - **Cashback**: Valor de cada ponto em reais
 </ResponseField>
 
@@ -245,8 +358,7 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
 </ResponseField>
 
 <ResponseField name="rewards[].requirements" type="string">
-  Texto amigável descrevendo os requisitos para usar a recompensa.
-  Exemplo: "Válido para compras acima de R$50,00"
+  Texto amigável descrevendo os requisitos para usar a recompensa. Exemplo: "Válido para compras acima de R\$50,00"
 </ResponseField>
 
 <ResponseField name="rewards[].isCashback" type="boolean">
@@ -258,8 +370,7 @@ Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cli
 </ResponseField>
 
 <ResponseField name="rewards[].rewardCanBeCumulative" type="boolean">
-  Se `true`, a recompensa pode ser usada junto com outros descontos.
-  Se `false`, a recompensa só pode ser usada se não houver outros descontos no pedido.
+  Se `true`, a recompensa pode ser usada junto com outros descontos. Se `false`, a recompensa só pode ser usada se não houver outros descontos no pedido.
 </ResponseField>
 
 ---
@@ -282,7 +393,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 
 #### 2.1. Enviar Challenge
 
-<ParamField path="POST" method="POST" path="/customers/{id}/challenge">
+<ParamField path="/customers/{id}/challenge">
   Envia um código PIN de validação para o cliente.
 </ParamField>
 
@@ -295,8 +406,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 ##### Request Body
 
 <ParamField body="TransactionId" type="string">
-  ID único para identificar esta transação. Pode ser qualquer string vinculada à compra atual.
-  Se não houver um ID disponível, use o timestamp atual.
+  ID único para identificar esta transação. Pode ser qualquer string vinculada à compra atual. Se não houver um ID disponível, use o timestamp atual.
 </ParamField>
 
 <ParamField body="Phone" type="string">
@@ -308,6 +418,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 </ParamField>
 
 <CodeGroup>
+
 ```json Request
 {
   "transactionId": "PDV-001-2024-01-15-10:30",
@@ -315,6 +426,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
   "email": null
 }
 ```
+
 
 ```json Response - Sucesso
 {
@@ -330,6 +442,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 }
 ```
 
+
 ```json Response - Telefone Necessário
 {
   "success": false,
@@ -343,6 +456,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
   "code": null
 }
 ```
+
 </CodeGroup>
 
 #### Campos de Resposta do Challenge
@@ -375,7 +489,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 
 #### 2.2. Validar Challenge
 
-<ParamField path="POST" method="POST" path="/customers/{id}/challengevalidate">
+<ParamField path="/customers/{id}/challengevalidate">
   Valida o código PIN informado pelo cliente.
 </ParamField>
 
@@ -396,12 +510,14 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 </ParamField>
 
 <CodeGroup>
+
 ```json Request
 {
   "transactionId": "PDV-001-2024-01-15-10:30",
   "code": "123456"
 }
 ```
+
 
 ```json Response - Sucesso
 {
@@ -411,6 +527,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 }
 ```
 
+
 ```json Response - Código Inválido
 {
   "transactionId": "PDV-001-2024-01-15-10:30",
@@ -418,6 +535,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
   "friendlyErrorMessage": "Código inválido. Tente novamente."
 }
 ```
+
 </CodeGroup>
 
 <Warning>
@@ -428,7 +546,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 
 ### 3. Resgatar Recompensa
 
-<ParamField path="POST" method="POST" path="/rewards/{id}/redeem">
+<ParamField path="/rewards/{id}/redeem">
   Realiza o resgate de uma recompensa para o cliente.
 </ParamField>
 
@@ -449,26 +567,24 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 </ParamField>
 
 <ParamField body="Value" type="decimal">
-  **Obrigatório apenas para Cashback**. Valor de cashback que o cliente deseja utilizar.
-  Deve estar entre R$1,00 e o `maxCashbackForCurrentPurchase`.
+  **Obrigatório apenas para Cashback**. Valor de cashback que o cliente deseja utilizar. Deve estar entre R\$1,00 e o `maxCashbackForCurrentPurchase`.
 </ParamField>
 
 <ParamField body="Points" type="integer">
-  **Alternativa ao Value para Cashback**. Quantidade de pontos a utilizar.
-  Use `Value` ou `Points`, não ambos.
+  **Alternativa ao Value para Cashback**. Quantidade de pontos a utilizar. Use `Value` ou `Points`, não ambos.
 </ParamField>
 
 <ParamField body="OriginalKey" type="string" required>
   Chave única para garantir idempotência. Mesmo que a requisição seja feita mais de uma vez, o resgate acontecerá apenas uma vez.
-  
+
   **Sugestão de formato**: `{rewardId}-{customerId}-{orderId}-{value}`
-  
+
   Exemplo: `3-12345678900-PDV001-15.00`
 </ParamField>
 
 <ParamField body="Branch" type="object">
   Informações da filial/loja onde a compra está sendo realizada.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="Branch.OriginalId" type="string">
       ID da filial no sistema do cliente.
@@ -481,7 +597,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 
 <ParamField body="SalesPerson" type="object">
   Informações do vendedor responsável pela venda.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="SalesPerson.OriginalId" type="string">
       ID do vendedor no sistema do cliente.
@@ -494,7 +610,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 
 <ParamField body="Metadatas" type="array">
   Lista de metadados customizados para necessidades específicas do negócio.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="Metadatas[].Name" type="string">
       Nome do metadado.
@@ -506,6 +622,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 </ParamField>
 
 <CodeGroup>
+
 ```json Request - Desconto Fixo
 {
   "customerId": "12345678900",
@@ -523,6 +640,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 }
 ```
 
+
 ```json Request - Cashback
 {
   "customerId": "12345678900",
@@ -535,6 +653,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
   }
 }
 ```
+
 
 ```json Response - Sucesso
 {
@@ -553,6 +672,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
   }
 }
 ```
+
 </CodeGroup>
 
 #### Campos de Resposta do Resgate
@@ -562,8 +682,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 </ResponseField>
 
 <ResponseField name="data.externalCode" type="string">
-  **IMPORTANTE**: Este código deve ser enviado no campo `Coupon` quando o pedido for cadastrado na BonifiQ.
-  Isso vincula o resgate ao pedido.
+  **IMPORTANTE**: Este código deve ser enviado no campo `Coupon` quando o pedido for cadastrado na BonifiQ. Isso vincula o resgate ao pedido.
 </ResponseField>
 
 <ResponseField name="data.originalKey" type="string">
@@ -579,8 +698,7 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
 </ResponseField>
 
 <Tip>
-  Após receber a resposta de sucesso, aplique o desconto correspondente no pedido do PDV.
-  O tipo e valor do desconto foram informados no endpoint `/rewards/available`.
+  Após receber a resposta de sucesso, aplique o desconto correspondente no pedido do PDV. O tipo e valor do desconto foram informados no endpoint `/rewards/available`.
 </Tip>
 
 ---
@@ -591,7 +709,7 @@ Existem duas formas de cancelar uma recompensa resgatada:
 
 #### 4.1. Cancelar por ID da Recompensa
 
-<ParamField path="DELETE" method="DELETE" path="/rewards/{id}">
+<ParamField path="/rewards/{id}">
   Cancela uma recompensa pelo ID do resgate.
 </ParamField>
 
@@ -602,9 +720,11 @@ Existem duas formas de cancelar uma recompensa resgatada:
 </ParamField>
 
 <CodeGroup>
+
 ```bash Request
 DELETE /v1/pvt/POS/rewards/456
 ```
+
 
 ```json Response
 {
@@ -629,11 +749,12 @@ DELETE /v1/pvt/POS/rewards/456
   }
 }
 ```
+
 </CodeGroup>
 
 #### 4.2. Cancelar por OriginalKey
 
-<ParamField path="DELETE" method="DELETE" path="/rewards">
+<ParamField path="/rewards">
   Cancela uma recompensa pela OriginalKey usada no resgate.
 </ParamField>
 
@@ -644,11 +765,13 @@ DELETE /v1/pvt/POS/rewards/456
 </ParamField>
 
 <CodeGroup>
+
 ```json Request
 {
   "originalKey": "1-12345678900-PDV001"
 }
 ```
+
 
 ```json Response
 {
@@ -673,6 +796,7 @@ DELETE /v1/pvt/POS/rewards/456
   }
 }
 ```
+
 </CodeGroup>
 
 <Warning>
@@ -683,7 +807,7 @@ DELETE /v1/pvt/POS/rewards/456
 
 ### 5. Cadastrar Pedido
 
-<ParamField path="POST" method="POST" path="/orders">
+<ParamField path="/orders">
   Cadastra um pedido na BonifiQ para que o cliente receba os pontos correspondentes.
 </ParamField>
 
@@ -723,9 +847,10 @@ DELETE /v1/pvt/POS/rewards/456
 
 <ParamField body="OrderTotal" type="decimal" required>
   **Valor pago pelo cliente**. Este valor determina quantos pontos o cliente receberá.
-  
+
   <Warning>
     **NÃO inclua** neste valor:
+
     - Frete
     - Descontos
     - Cupons
@@ -736,13 +861,12 @@ DELETE /v1/pvt/POS/rewards/456
 </ParamField>
 
 <ParamField body="Coupon" type="string">
-  **IMPORTANTE**: Se o pedido utilizou uma recompensa da BonifiQ, informe aqui o `ExternalCode` retornado no resgate.
-  Se não utilizou recompensa BonifiQ mas usou outro cupom, informe o código do cupom.
+  **IMPORTANTE**: Se o pedido utilizou uma recompensa da BonifiQ, informe aqui o `ExternalCode` retornado no resgate. Se não utilizou recompensa BonifiQ mas usou outro cupom, informe o código do cupom.
 </ParamField>
 
 <ParamField body="Customer" type="object" required>
   Dados do cliente comprador.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="Customer.OriginalId" type="string" required>
       ID do cliente no sistema de origem.
@@ -773,7 +897,7 @@ DELETE /v1/pvt/POS/rewards/456
 
 <ParamField body="Products" type="array">
   Lista de produtos do pedido.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="Products[].OriginalId" type="string">
       ID do produto.
@@ -792,7 +916,7 @@ DELETE /v1/pvt/POS/rewards/456
 
 <ParamField body="PaymentMethod" type="object">
   Método de pagamento utilizado.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="PaymentMethod.OriginalId" type="string">
       ID do método de pagamento.
@@ -805,7 +929,7 @@ DELETE /v1/pvt/POS/rewards/456
 
 <ParamField body="Branch" type="object">
   Filial onde a compra foi realizada.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="Branch.OriginalId" type="string">
       ID da filial.
@@ -818,7 +942,7 @@ DELETE /v1/pvt/POS/rewards/456
 
 <ParamField body="SalesPerson" type="object">
   Vendedor responsável pela venda.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="SalesPerson.OriginalId" type="string">
       ID do vendedor.
@@ -831,7 +955,7 @@ DELETE /v1/pvt/POS/rewards/456
 
 <ParamField body="Metadatas" type="array">
   Lista de metadados customizados.
-  
+
   <Expandable title="Propriedades">
     <ParamField body="Metadatas[].Name" type="string">
       Nome do metadado.
@@ -843,6 +967,7 @@ DELETE /v1/pvt/POS/rewards/456
 </ParamField>
 
 <CodeGroup>
+
 ```json Request - Pedido com Recompensa BonifiQ
 {
   "originalId": "PDV-2024-001234",
@@ -893,6 +1018,7 @@ DELETE /v1/pvt/POS/rewards/456
 }
 ```
 
+
 ```json Request - Pedido sem Recompensa
 {
   "originalId": "PDV-2024-001235",
@@ -914,6 +1040,7 @@ DELETE /v1/pvt/POS/rewards/456
   }
 }
 ```
+
 
 ```json Response - Sucesso
 {
@@ -939,27 +1066,29 @@ DELETE /v1/pvt/POS/rewards/456
   }
 }
 ```
+
 </CodeGroup>
 
 #### Estados do Pedido (state)
 
-| Valor | Estado | Descrição |
-|-------|--------|-----------|
-| 0 | Inicial | Pedido recém criado |
-| 1 | Pendente | Aguardando conclusão |
-| 2 | Completo | Pedido finalizado, pontos concedidos |
-| 3 | Cancelado | Pedido cancelado, pontos estornados |
-| 4 | Ignorado | Pedido ignorado pelo sistema |
+| Valor | Estado    | Descrição                            |
+| ----- | --------- | ------------------------------------ |
+| 0     | Inicial   | Pedido recém criado                  |
+| 1     | Pendente  | Aguardando conclusão                 |
+| 2     | Completo  | Pedido finalizado, pontos concedidos |
+| 3     | Cancelado | Pedido cancelado, pontos estornados  |
+| 4     | Ignorado  | Pedido ignorado pelo sistema         |
 
 ---
 
 ### 6. Cancelar Pedido
 
-<ParamField path="POST" method="POST" path="/orders/{orderId}/cancel">
+<ParamField path="/orders/{orderId}/cancel">
   Cancela um pedido existente na BonifiQ.
 </ParamField>
 
 Quando um pedido é cancelado, a BonifiQ automaticamente:
+
 - Marca o pedido como Cancelado (refletido nos relatórios)
 - Estorna os pontos concedidos ao cliente (se houver)
 - Estorna as recompensas utilizadas (se houver)
@@ -981,12 +1110,14 @@ Quando um pedido é cancelado, a BonifiQ automaticamente:
 </ParamField>
 
 <CodeGroup>
+
 ```json Request
 {
   "orderCancelledDate": "2024-01-15T15:30:00Z",
   "orderStatus": "Cancelado"
 }
 ```
+
 
 ```json Response
 {
@@ -1001,13 +1132,14 @@ Quando um pedido é cancelado, a BonifiQ automaticamente:
   }
 }
 ```
+
 </CodeGroup>
 
 ---
 
 ### 7. Cancelamento Parcial de Pedido
 
-<ParamField path="POST" method="POST" path="/{orderId}/partialcancel">
+<ParamField path="/{orderId}/partialcancel">
   Cancela parcialmente um pedido, estornando pontos/cashback proporcionalmente.
 </ParamField>
 
@@ -1026,17 +1158,18 @@ Use este endpoint quando o cliente devolve apenas parte dos produtos de uma comp
 </ParamField>
 
 <ParamField body="CancelKey" type="string" required>
-  Chave única para garantir idempotência. Evita cancelamentos duplicados do mesmo valor.
-  Use um ID único para cada solicitação de cancelamento parcial.
+  Chave única para garantir idempotência. Evita cancelamentos duplicados do mesmo valor. Use um ID único para cada solicitação de cancelamento parcial.
 </ParamField>
 
 <CodeGroup>
+
 ```json Request
 {
   "valueToRefund": 50.00,
   "cancelKey": "REFUND-PDV001-2024-001"
 }
 ```
+
 
 ```json Response
 {
@@ -1051,12 +1184,11 @@ Use este endpoint quando o cliente devolve apenas parte dos produtos de uma comp
   }
 }
 ```
+
 </CodeGroup>
 
 <Note>
-  O cancelamento parcial estorna pontos/cashback proporcionalmente ao valor devolvido. 
-  Por exemplo, se o pedido original era de R$200,00 e rendeu 200 pontos, um estorno de R$50,00 
-  removerá aproximadamente 50 pontos do cliente.
+  O cancelamento parcial estorna pontos/cashback proporcionalmente ao valor devolvido. Por exemplo, se o pedido original era de R$200,00 e rendeu 200 pontos, um estorno de R$50,00 removerá aproximadamente 50 pontos do cliente.
 </Note>
 
 ---
@@ -1093,29 +1225,29 @@ flowchart TD
 Ao consultar as recompensas (`/rewards/available`), exiba as informações da seguinte forma:
 
 <Frame>
-  <img src="/images/pos-rewards-list.png" alt="Lista de Recompensas" />
+  ![Lista de Recompensas](/images/pos-rewards-list.png)
 </Frame>
 
-| Campo da API | Uso na Interface |
-|--------------|------------------|
-| `title` | Título principal da recompensa |
-| `points` | "X pontos" abaixo do título |
-| `requirements` | Texto secundário com requisitos |
-| `canUse` | Se `false`, mostrar item desabilitado/cinza |
+| Campo da API   | Uso na Interface                            |
+| -------------- | ------------------------------------------- |
+| `title`        | Título principal da recompensa              |
+| `points`       | "X pontos" abaixo do título                 |
+| `requirements` | Texto secundário com requisitos             |
+| `canUse`       | Se `false`, mostrar item desabilitado/cinza |
 
 #### Seletor de Valor de Cashback
 
 Quando a recompensa for cashback (`isCashback=true`), exiba um seletor de valor:
 
 <Frame>
-  <img src="/images/pos-cashback-selector.png" alt="Seletor de Cashback" />
+  ![Seletor de Cashback](/images/pos-cashback-selector.png)
 </Frame>
 
-| Campo da API | Uso na Interface |
-|--------------|------------------|
-| `availableCashback` | "Saldo disponível: R$ X" |
+| Campo da API                    | Uso na Interface             |
+| ------------------------------- | ---------------------------- |
+| `availableCashback`             | "Saldo disponível: R\$ X"    |
 | `maxCashbackForCurrentPurchase` | Valor máximo do slider/input |
-| `requirements` | Explicação do limite |
+| `requirements`                  | Explicação do limite         |
 
 ---
 
@@ -1133,14 +1265,14 @@ Todos os endpoints retornam erros no seguinte formato:
 
 ### Códigos de Erro Comuns
 
-| Cenário | Ação Recomendada |
-|---------|------------------|
-| Cliente não encontrado | Verificar se o documento foi digitado corretamente |
-| Pontos insuficientes | Informar ao cliente que ele não tem pontos suficientes |
-| Valor de compra abaixo do mínimo | Informar o valor mínimo necessário |
-| Challenge expirado | Solicitar novo código ao cliente |
-| Código PIN inválido | Permitir nova tentativa ou cancelar |
-| Recompensa já resgatada (idempotência) | A operação já foi realizada, prosseguir |
+| Cenário                                | Ação Recomendada                                       |
+| -------------------------------------- | ------------------------------------------------------ |
+| Cliente não encontrado                 | Verificar se o documento foi digitado corretamente     |
+| Pontos insuficientes                   | Informar ao cliente que ele não tem pontos suficientes |
+| Valor de compra abaixo do mínimo       | Informar o valor mínimo necessário                     |
+| Challenge expirado                     | Solicitar novo código ao cliente                       |
+| Código PIN inválido                    | Permitir nova tentativa ou cancelar                    |
+| Recompensa já resgatada (idempotência) | A operação já foi realizada, prosseguir                |
 
 ---
 
@@ -1148,29 +1280,19 @@ Todos os endpoints retornam erros no seguinte formato:
 
 <AccordionGroup>
   <Accordion title="Sempre use OriginalKey para idempotência">
-    Em sistemas distribuídos, falhas de rede podem causar requisições duplicadas. 
-    Use sempre a `OriginalKey` com um valor único e consistente para evitar 
-    resgates ou cancelamentos duplicados.
+    Em sistemas distribuídos, falhas de rede podem causar requisições duplicadas. Use sempre a `OriginalKey` com um valor único e consistente para evitar resgates ou cancelamentos duplicados.
   </Accordion>
-
   <Accordion title="Vincule o resgate ao pedido">
-    Sempre envie o `ExternalCode` retornado no resgate como valor do campo 
-    `Coupon` ao cadastrar o pedido. Isso permite rastreamento completo.
+    Sempre envie o `ExternalCode` retornado no resgate como valor do campo `Coupon` ao cadastrar o pedido. Isso permite rastreamento completo.
   </Accordion>
-
   <Accordion title="Não inclua descontos no OrderTotal">
-    O `OrderTotal` deve refletir apenas o valor efetivamente pago pelo cliente,
-    sem frete, descontos, cupons ou promoções. Isso garante o cálculo correto de pontos.
+    O `OrderTotal` deve refletir apenas o valor efetivamente pago pelo cliente, sem frete, descontos, cupons ou promoções. Isso garante o cálculo correto de pontos.
   </Accordion>
-
   <Accordion title="Trate a validação como opcional">
-    Verifique o campo `shouldValidateCustomer` antes de iniciar o fluxo de challenge.
-    Se `false`, pule direto para o resgate.
+    Verifique o campo `shouldValidateCustomer` antes de iniciar o fluxo de challenge. Se `false`, pule direto para o resgate.
   </Accordion>
-
   <Accordion title="Exiba recompensas indisponíveis como desabilitadas">
-    Mesmo que `canUse=false`, exiba a recompensa ao cliente (em estado desabilitado).
-    Isso o motiva a acumular mais pontos para futuras compras.
+    Mesmo que `canUse=false`, exiba a recompensa ao cliente (em estado desabilitado). Isso o motiva a acumular mais pontos para futuras compras.
   </Accordion>
 </AccordionGroup>
 
@@ -1182,4 +1304,4 @@ Em caso de dúvidas ou problemas na integração:
 
 - **Documentação Swagger**: [API Docs](https://api.bonifiq.com.br/apidocs/private/index.html?url=/swagger/Private%20APIs/swagger.json#/POS)
 - **Central de Ajuda**: [suporte.bonifiq.com.br](https://suporte.bonifiq.com.br)
-- **E-mail**: suporte@bonifiq.com.br
+- **E-mail**: [suporte@bonifiq.com.br](mailto:suporte@bonifiq.com.br)
