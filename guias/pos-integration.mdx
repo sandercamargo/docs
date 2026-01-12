@@ -779,238 +779,148 @@ Existem duas formas de cancelar uma recompensa resgatada:
   Este é um endpoint essencial. Sem o cadastro do pedido, o cliente não receberá os pontos da compra.
 </Note>
 
-##### Request Body
+<Accordion title="Request Body">
+  <ParamField body="OriginalId" type="string" required>
+    ID do pedido no sistema do cliente (PDV).
+  </ParamField>
+  <ParamField body="OrderPlacementDate" type="datetime" required>
+    Data/hora em que o pedido foi realizado.
+  </ParamField>
+  <ParamField body="OrderCompletedDate" type="datetime">
+    Data/hora em que o pedido foi concluído. Obrigatório se `IsCompleted=true`.
+  </ParamField>
+  <ParamField body="OrderCancelledDate" type="datetime">
+    Data/hora do cancelamento. Obrigatório se `IsCancelledOrReturned=true`.
+  </ParamField>
+  <ParamField body="OrderStatus" type="string">
+    Status do pedido no sistema de origem (informativo).
+  </ParamField>
+  <ParamField body="IsCompleted" type="boolean" required>
+    Se `true`, o pedido está finalizado e os pontos serão concedidos ao cliente.
+  </ParamField>
+  <ParamField body="IsCancelledOrReturned" type="boolean" required>
+    Se `true`, o pedido foi cancelado ou devolvido.
+  </ParamField>
+  <ParamField body="OrderTotal" type="decimal" required>
+    **Valor pago pelo cliente**. Este valor determina quantos pontos o cliente receberá.
 
-<ParamField body="OriginalId" type="string" required>
-  ID do pedido no sistema do cliente (PDV).
-</ParamField>
+    <Warning>
+      **NÃO inclua** neste valor:
 
-<ParamField body="OrderPlacementDate" type="datetime" required>
-  Data/hora em que o pedido foi realizado.
-</ParamField>
+      - Frete
+      - Descontos
+      - Cupons
+      - Cashback
+      - Promoções
+      - Gift cards
+    </Warning>
+  </ParamField>
+  <ParamField body="Coupon" type="string">
+    **IMPORTANTE**: Se o pedido utilizou uma recompensa da BonifiQ, informe aqui o `ExternalCode` retornado no resgate. Se não utilizou recompensa BonifiQ mas usou outro cupom, informe o código do cupom.
+  </ParamField>
+  <ParamField body="Customer" type="object" required>
+    Dados do cliente comprador.
 
-<ParamField body="OrderCompletedDate" type="datetime">
-  Data/hora em que o pedido foi concluído. Obrigatório se `IsCompleted=true`.
-</ParamField>
+    <Expandable title="Propriedades">
+      <ParamField body="Customer.OriginalId" type="string" required>
+        ID do cliente no sistema de origem.
+      </ParamField>
+      <ParamField body="Customer.Name" type="string" required>
+        Nome do cliente.
+      </ParamField>
+      <ParamField body="Customer.Email" type="string">
+        E-mail do cliente.
+      </ParamField>
+      <ParamField body="Customer.Phone" type="string">
+        Telefone do cliente.
+      </ParamField>
+      <ParamField body="Customer.Document" type="string">
+        CPF ou CNPJ do cliente (apenas números).
+      </ParamField>
+      <ParamField body="Customer.BirthdayDate" type="datetime">
+        Data de nascimento do cliente.
+      </ParamField>
+      <ParamField body="Customer.SignupDate" type="datetime">
+        Data de cadastro do cliente.
+      </ParamField>
+      <ParamField body="Customer.IsEnrolled" type="boolean">
+        Se `true`, o cliente participa do programa de fidelidade. Default: `true`.
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <ParamField body="Products" type="array">
+    Lista de produtos do pedido.
 
-<ParamField body="OrderCancelledDate" type="datetime">
-  Data/hora do cancelamento. Obrigatório se `IsCancelledOrReturned=true`.
-</ParamField>
+    <Expandable title="Propriedades">
+      <ParamField body="Products[].OriginalId" type="string">
+        ID do produto.
+      </ParamField>
+      <ParamField body="Products[].Name" type="string">
+        Nome do produto.
+      </ParamField>
+      <ParamField body="Products[].Quantity" type="integer">
+        Quantidade.
+      </ParamField>
+      <ParamField body="Products[].Price" type="decimal">
+        Preço unitário.
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <ParamField body="PaymentMethod" type="object">
+    Método de pagamento utilizado.
 
-<ParamField body="OrderStatus" type="string">
-  Status do pedido no sistema de origem (informativo).
-</ParamField>
+    <Expandable title="Propriedades">
+      <ParamField body="PaymentMethod.OriginalId" type="string">
+        ID do método de pagamento.
+      </ParamField>
+      <ParamField body="PaymentMethod.Name" type="string">
+        Nome do método (ex: "Cartão Visa Crédito", "PIX", "Dinheiro").
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <ParamField body="Branch" type="object">
+    Filial onde a compra foi realizada.
 
-<ParamField body="IsCompleted" type="boolean" required>
-  Se `true`, o pedido está finalizado e os pontos serão concedidos ao cliente.
-</ParamField>
+    <Expandable title="Propriedades">
+      <ParamField body="Branch.OriginalId" type="string">
+        ID da filial.
+      </ParamField>
+      <ParamField body="Branch.Name" type="string">
+        Nome da filial.
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <ParamField body="SalesPerson" type="object">
+    Vendedor responsável pela venda.
 
-<ParamField body="IsCancelledOrReturned" type="boolean" required>
-  Se `true`, o pedido foi cancelado ou devolvido.
-</ParamField>
+    <Expandable title="Propriedades">
+      <ParamField body="SalesPerson.OriginalId" type="string">
+        ID do vendedor.
+      </ParamField>
+      <ParamField body="SalesPerson.Name" type="string">
+        Nome do vendedor.
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <ParamField body="Metadatas" type="array">
+    Lista de metadados customizados.
 
-<ParamField body="OrderTotal" type="decimal" required>
-  **Valor pago pelo cliente**. Este valor determina quantos pontos o cliente receberá.
+    <Expandable title="Propriedades">
+      <ParamField body="Metadatas[].Name" type="string">
+        Nome do metadado.
+      </ParamField>
+      <ParamField body="Metadatas[].Value" type="string">
+        Valor do metadado.
+      </ParamField>
+    </Expandable>
+  </ParamField>
+</Accordion>
 
-  <Warning>
-    **NÃO inclua** neste valor:
+<Accordion title="Exemplos de Requisição e Resposta">
+  <CodeGroup>
 
-    - Frete
-    - Descontos
-    - Cupons
-    - Cashback
-    - Promoções
-    - Gift cards
-  </Warning>
-</ParamField>
-
-<ParamField body="Coupon" type="string">
-  **IMPORTANTE**: Se o pedido utilizou uma recompensa da BonifiQ, informe aqui o `ExternalCode` retornado no resgate. Se não utilizou recompensa BonifiQ mas usou outro cupom, informe o código do cupom.
-</ParamField>
-
-<ParamField body="Customer" type="object" required>
-  Dados do cliente comprador.
-
-  <Expandable title="Propriedades">
-    <ParamField body="Customer.OriginalId" type="string" required>
-      ID do cliente no sistema de origem.
-    </ParamField>
-    <ParamField body="Customer.Name" type="string" required>
-      Nome do cliente.
-    </ParamField>
-    <ParamField body="Customer.Email" type="string">
-      E-mail do cliente.
-    </ParamField>
-    <ParamField body="Customer.Phone" type="string">
-      Telefone do cliente.
-    </ParamField>
-    <ParamField body="Customer.Document" type="string">
-      CPF ou CNPJ do cliente (apenas números).
-    </ParamField>
-    <ParamField body="Customer.BirthdayDate" type="datetime">
-      Data de nascimento do cliente.
-    </ParamField>
-    <ParamField body="Customer.SignupDate" type="datetime">
-      Data de cadastro do cliente.
-    </ParamField>
-    <ParamField body="Customer.IsEnrolled" type="boolean">
-      Se `true`, o cliente participa do programa de fidelidade. Default: `true`.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="Products" type="array">
-  Lista de produtos do pedido.
-
-  <Expandable title="Propriedades">
-    <ParamField body="Products[].OriginalId" type="string">
-      ID do produto.
-    </ParamField>
-    <ParamField body="Products[].Name" type="string">
-      Nome do produto.
-    </ParamField>
-    <ParamField body="Products[].Quantity" type="integer">
-      Quantidade.
-    </ParamField>
-    <ParamField body="Products[].Price" type="decimal">
-      Preço unitário.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="PaymentMethod" type="object">
-  Método de pagamento utilizado.
-
-  <Expandable title="Propriedades">
-    <ParamField body="PaymentMethod.OriginalId" type="string">
-      ID do método de pagamento.
-    </ParamField>
-    <ParamField body="PaymentMethod.Name" type="string">
-      Nome do método (ex: "Cartão Visa Crédito", "PIX", "Dinheiro").
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="Branch" type="object">
-  Filial onde a compra foi realizada.
-
-  <Expandable title="Propriedades">
-    <ParamField body="Branch.OriginalId" type="string">
-      ID da filial.
-    </ParamField>
-    <ParamField body="Branch.Name" type="string">
-      Nome da filial.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="SalesPerson" type="object">
-  Vendedor responsável pela venda.
-
-  <Expandable title="Propriedades">
-    <ParamField body="SalesPerson.OriginalId" type="string">
-      ID do vendedor.
-    </ParamField>
-    <ParamField body="SalesPerson.Name" type="string">
-      Nome do vendedor.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="Metadatas" type="array">
-  Lista de metadados customizados.
-
-  <Expandable title="Propriedades">
-    <ParamField body="Metadatas[].Name" type="string">
-      Nome do metadado.
-    </ParamField>
-    <ParamField body="Metadatas[].Value" type="string">
-      Valor do metadado.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<CodeGroup>
-
-```json Request - Pedido com Recompensa BonifiQ
-{
-  "originalId": "PDV-2024-001234",
-  "orderPlacementDate": "2024-01-15T10:30:00Z",
-  "orderCompletedDate": "2024-01-15T10:35:00Z",
-  "orderCancelledDate": null,
-  "orderStatus": "Concluído",
-  "isCancelledOrReturned": false,
-  "isCompleted": true,
-  "orderTotal": 140.00,
-  "coupon": "BNF-2024-ABC123",
-  "customer": {
-    "originalId": "CLI-12345",
-    "name": "Maria Silva",
-    "email": "maria@email.com",
-    "phone": "11999998888",
-    "document": "12345678900",
-    "birthdayDate": "1990-05-15",
-    "signupDate": "2023-06-01T00:00:00Z",
-    "isEnrolled": true
-  },
-  "products": [
-    {
-      "originalId": "PROD-001",
-      "name": "Camiseta Azul M",
-      "quantity": 2,
-      "price": 75.00
-    }
-  ],
-  "paymentMethod": {
-    "originalId": "PIX",
-    "name": "PIX"
-  },
-  "branch": {
-    "originalId": "LOJA-001",
-    "name": "Loja Centro"
-  },
-  "salesPerson": {
-    "originalId": "VEND-123",
-    "name": "João Silva"
-  },
-  "metadatas": [
-    {
-      "name": "canal_venda",
-      "value": "presencial"
-    }
-  ]
-}
-```
-
-
-```json Request - Pedido sem Recompensa
-{
-  "originalId": "PDV-2024-001235",
-  "orderPlacementDate": "2024-01-15T11:00:00Z",
-  "orderCompletedDate": "2024-01-15T11:05:00Z",
-  "orderCancelledDate": null,
-  "orderStatus": "Concluído",
-  "isCancelledOrReturned": false,
-  "isCompleted": true,
-  "orderTotal": 200.00,
-  "coupon": null,
-  "customer": {
-    "originalId": "CLI-67890",
-    "name": "João Santos",
-    "email": "joao@email.com",
-    "phone": "11888887777",
-    "document": "98765432100",
-    "isEnrolled": true
-  }
-}
-```
-
-
-```json Response - Sucesso
-{
-  "hasError": false,
-  "errorMessage": null,
-  "data": {
+  ```json Request - Pedido com Recompensa BonifiQ
+  {
     "originalId": "PDV-2024-001234",
     "orderPlacementDate": "2024-01-15T10:30:00Z",
     "orderCompletedDate": "2024-01-15T10:35:00Z",
@@ -1020,18 +930,96 @@ Existem duas formas de cancelar uma recompensa resgatada:
     "isCompleted": true,
     "orderTotal": 140.00,
     "coupon": "BNF-2024-ABC123",
-    "state": 2,
-    "origin": 1,
     "customer": {
       "originalId": "CLI-12345",
       "name": "Maria Silva",
-      "email": "maria@email.com"
+      "email": "maria@email.com",
+      "phone": "11999998888",
+      "document": "12345678900",
+      "birthdayDate": "1990-05-15",
+      "signupDate": "2023-06-01T00:00:00Z",
+      "isEnrolled": true
+    },
+    "products": [
+      {
+        "originalId": "PROD-001",
+        "name": "Camiseta Azul M",
+        "quantity": 2,
+        "price": 75.00
+      }
+    ],
+    "paymentMethod": {
+      "originalId": "PIX",
+      "name": "PIX"
+    },
+    "branch": {
+      "originalId": "LOJA-001",
+      "name": "Loja Centro"
+    },
+    "salesPerson": {
+      "originalId": "VEND-123",
+      "name": "João Silva"
+    },
+    "metadatas": [
+      {
+        "name": "canal_venda",
+        "value": "presencial"
+      }
+    ]
+  }
+  ```
+
+  
+  ```json Request - Pedido sem Recompensa
+  {
+    "originalId": "PDV-2024-001235",
+    "orderPlacementDate": "2024-01-15T11:00:00Z",
+    "orderCompletedDate": "2024-01-15T11:05:00Z",
+    "orderCancelledDate": null,
+    "orderStatus": "Concluído",
+    "isCancelledOrReturned": false,
+    "isCompleted": true,
+    "orderTotal": 200.00,
+    "coupon": null,
+    "customer": {
+      "originalId": "CLI-67890",
+      "name": "João Santos",
+      "email": "joao@email.com",
+      "phone": "11888887777",
+      "document": "98765432100",
+      "isEnrolled": true
     }
   }
-}
-```
+  ```
 
-</CodeGroup>
+  
+  ```json Response - Sucesso
+  {
+    "hasError": false,
+    "errorMessage": null,
+    "data": {
+      "originalId": "PDV-2024-001234",
+      "orderPlacementDate": "2024-01-15T10:30:00Z",
+      "orderCompletedDate": "2024-01-15T10:35:00Z",
+      "orderCancelledDate": null,
+      "orderStatus": "Concluído",
+      "isCancelledOrReturned": false,
+      "isCompleted": true,
+      "orderTotal": 140.00,
+      "coupon": "BNF-2024-ABC123",
+      "state": 2,
+      "origin": 1,
+      "customer": {
+        "originalId": "CLI-12345",
+        "name": "Maria Silva",
+        "email": "maria@email.com"
+      }
+    }
+  }
+  ```
+
+  </CodeGroup>
+</Accordion>
 
 #### Estados do Pedido (state)
 
@@ -1063,41 +1051,39 @@ Quando um pedido é cancelado, a BonifiQ automaticamente:
   O `OriginalId` do pedido que foi enviado quando o pedido foi criado.
 </ParamField>
 
-##### Request Body
+<Accordion title="Request Body e Resposta">
+  <ParamField body="OrderCancelledDate" type="datetime" required>
+    Data/hora do cancelamento.
+  </ParamField>
+  <ParamField body="OrderStatus" type="string">
+    Novo status do pedido (informativo).
+  </ParamField>
+  <CodeGroup>
 
-<ParamField body="OrderCancelledDate" type="datetime" required>
-  Data/hora do cancelamento.
-</ParamField>
+  ```json Request
+  {
+    "orderCancelledDate": "2024-01-15T15:30:00Z",
+    "orderStatus": "Cancelado"
+  }
+  ```
 
-<ParamField body="OrderStatus" type="string">
-  Novo status do pedido (informativo).
-</ParamField>
-
-<CodeGroup>
-
-```json Request
-{
-  "orderCancelledDate": "2024-01-15T15:30:00Z",
-  "orderStatus": "Cancelado"
-}
-```
-
-
-```json Response
-{
-  "hasError": false,
-  "data": {
-    "isCanceled": true,
-    "updatedAt": "2024-01-15T15:30:00Z",
-    "status": {
-      "code": 3,
-      "description": "Cancelado"
+  
+  ```json Response
+  {
+    "hasError": false,
+    "data": {
+      "isCanceled": true,
+      "updatedAt": "2024-01-15T15:30:00Z",
+      "status": {
+        "code": 3,
+        "description": "Cancelado"
+      }
     }
   }
-}
-```
+  ```
 
-</CodeGroup>
+  </CodeGroup>
+</Accordion>
 
 ---
 
@@ -1115,41 +1101,39 @@ Use este endpoint quando o cliente devolve apenas parte dos produtos de uma comp
   O `OriginalId` do pedido.
 </ParamField>
 
-##### Request Body
+<Accordion title="Request Body e Resposta">
+  <ParamField body="ValueToRefund" type="decimal" required>
+    Valor a ser estornado. Deve ser maior que zero e menor ou igual ao `OrderTotal` original.
+  </ParamField>
+  <ParamField body="CancelKey" type="string" required>
+    Chave única para garantir idempotência. Evita cancelamentos duplicados do mesmo valor. Use um ID único para cada solicitação de cancelamento parcial.
+  </ParamField>
+  <CodeGroup>
 
-<ParamField body="ValueToRefund" type="decimal" required>
-  Valor a ser estornado. Deve ser maior que zero e menor ou igual ao `OrderTotal` original.
-</ParamField>
+  ```json Request
+  {
+    "valueToRefund": 50.00,
+    "cancelKey": "REFUND-PDV001-2024-001"
+  }
+  ```
 
-<ParamField body="CancelKey" type="string" required>
-  Chave única para garantir idempotência. Evita cancelamentos duplicados do mesmo valor. Use um ID único para cada solicitação de cancelamento parcial.
-</ParamField>
-
-<CodeGroup>
-
-```json Request
-{
-  "valueToRefund": 50.00,
-  "cancelKey": "REFUND-PDV001-2024-001"
-}
-```
-
-
-```json Response
-{
-  "hasError": false,
-  "data": {
-    "isCanceled": true,
-    "updatedAt": "2024-01-15T16:00:00Z",
-    "status": {
-      "code": 2,
-      "description": "Completo"
+  
+  ```json Response
+  {
+    "hasError": false,
+    "data": {
+      "isCanceled": true,
+      "updatedAt": "2024-01-15T16:00:00Z",
+      "status": {
+        "code": 2,
+        "description": "Completo"
+      }
     }
   }
-}
-```
+  ```
 
-</CodeGroup>
+  </CodeGroup>
+</Accordion>
 
 <Note>
   O cancelamento parcial estorna pontos/cashback proporcionalmente ao valor devolvido. Por exemplo, se o pedido original era de R$200,00 e rendeu 200 pontos, um estorno de R$50,00 removerá aproximadamente 50 pontos do cliente.
