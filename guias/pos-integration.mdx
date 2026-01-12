@@ -201,177 +201,161 @@ O fluxo pode ser dividido em três etapas principais:
 
 Este endpoint retorna todas as recompensas configuradas, mesmo aquelas que o cliente não pode usar no momento (por falta de pontos, por exemplo). Isso permite exibir ao cliente quais recompensas ele poderá obter no futuro.
 
-#### Request Body
+<Accordion title="Request Body">
+  <ParamField body="CustomerId" type="string" required>
+    Identificador do cliente. Pode ser e-mail ou documento (CPF/CNPJ). **Importante**: Se for documento, utilize apenas números.
+  </ParamField>
+  <ParamField body="PurchaseValue" type="decimal" required>
+    Valor atual do pedido. **Não deve incluir** descontos, cupons ou outras promoções.
+  </ParamField>
+  <ParamField body="DiscountValue" type="decimal">
+    Valor de desconto já aplicado no pedido (que não seja da BonifiQ). A BonifiQ usa esta informação para retornar apenas recompensas que podem ser acumuladas com outros descontos. Se não houver desconto, envie `null` ou `0`.
+  </ParamField>
+  <CodeGroup>
 
-<ParamField body="CustomerId" type="string" required>
-  Identificador do cliente. Pode ser e-mail ou documento (CPF/CNPJ). **Importante**: Se for documento, utilize apenas números.
-</ParamField>
+  ```json Request
+  {
+    "customerId": "12345678900",
+    "purchaseValue": 150.00,
+    "discountValue": null
+  }
+  ```
 
-<ParamField body="PurchaseValue" type="decimal" required>
-  Valor atual do pedido. **Não deve incluir** descontos, cupons ou outras promoções.
-</ParamField>
+  
+  ```json Response - Com Recompensas
+  {
+    "hasRewards": true,
+    "shouldValidateCustomer": true,
+    "availablePoints": 1500,
+    "cashbackEnabled": true,
+    "availableCashback": 25.00,
+    "maxCashbackForCurrentPurchase": 15.00,
+    "rewards": [
+      {
+        "id": 1,
+        "title": "R$10,00 de desconto",
+        "rewardType": 1,
+        "value": 10.00,
+        "canSelectValue": false,
+        "isCashback": false,
+        "requirements": "Válido para compras acima de R$50,00",
+        "availableCashback": 0,
+        "maxCashbackForCurrentPurchase": 0,
+        "canUse": true,
+        "points": 100,
+        "rewardCanBeCumulative": true
+      },
+      {
+        "id": 2,
+        "title": "15% de desconto",
+        "rewardType": 0,
+        "value": 15.00,
+        "canSelectValue": false,
+        "isCashback": false,
+        "requirements": "Válido para compras acima de R$100,00",
+        "availableCashback": 0,
+        "maxCashbackForCurrentPurchase": 0,
+        "canUse": true,
+        "points": 500,
+        "rewardCanBeCumulative": false
+      },
+      {
+        "id": 3,
+        "title": "Usar Cashback",
+        "rewardType": 3,
+        "value": 1.00,
+        "canSelectValue": true,
+        "isCashback": true,
+        "requirements": "Máximo de 10% do valor da compra",
+        "availableCashback": 25.00,
+        "maxCashbackForCurrentPurchase": 15.00,
+        "canUse": true,
+        "points": 1500,
+        "rewardCanBeCumulative": true
+      }
+    ]
+  }
+  ```
 
-<ParamField body="DiscountValue" type="decimal">
-  Valor de desconto já aplicado no pedido (que não seja da BonifiQ). A BonifiQ usa esta informação para retornar apenas recompensas que podem ser acumuladas com outros descontos. Se não houver desconto, envie `null` ou `0`.
-</ParamField>
+  
+  ```json Response - Sem Recompensas
+  {
+    "hasRewards": false,
+    "shouldValidateCustomer": false,
+    "availablePoints": 50,
+    "cashbackEnabled": false,
+    "availableCashback": 0,
+    "maxCashbackForCurrentPurchase": 0,
+    "rewards": []
+  }
+  ```
 
-<CodeGroup>
+  </CodeGroup>
+</Accordion>
 
-```json Request
-{
-  "customerId": "12345678900",
-  "purchaseValue": 150.00,
-  "discountValue": null
-}
-```
+<Accordion title="Campos de Resposta">
+  #### Campos de Resposta Importantes
 
+  <ResponseField name="hasRewards" type="boolean">
+    Se `false`, não há recompensas disponíveis. O fluxo de recompensas deve ser ignorado.
+  </ResponseField>
+  <ResponseField name="shouldValidateCustomer" type="boolean">
+    Se `true`, o fluxo deve seguir para a validação do cliente (envio de código PIN). Se `false`, a validação pode ser pulada.
+  </ResponseField>
+  <ResponseField name="availablePoints" type="integer">
+    Quantidade de pontos que o cliente possui atualmente.
+  </ResponseField>
+  <ResponseField name="cashbackEnabled" type="boolean">
+    Se `true`, existe uma recompensa de Cashback configurada.
+  </ResponseField>
+  <ResponseField name="availableCashback" type="decimal">
+    Valor total de cashback que o cliente possui.
+  </ResponseField>
+  <ResponseField name="maxCashbackForCurrentPurchase" type="decimal">
+    Valor máximo de cashback que pode ser utilizado na compra atual, considerando as regras configuradas.
+  </ResponseField>
+  #### Campos de Cada Recompensa
 
-```json Response - Com Recompensas
-{
-  "hasRewards": true,
-  "shouldValidateCustomer": true,
-  "availablePoints": 1500,
-  "cashbackEnabled": true,
-  "availableCashback": 25.00,
-  "maxCashbackForCurrentPurchase": 15.00,
-  "rewards": [
-    {
-      "id": 1,
-      "title": "R$10,00 de desconto",
-      "rewardType": 1,
-      "value": 10.00,
-      "canSelectValue": false,
-      "isCashback": false,
-      "requirements": "Válido para compras acima de R$50,00",
-      "availableCashback": 0,
-      "maxCashbackForCurrentPurchase": 0,
-      "canUse": true,
-      "points": 100,
-      "rewardCanBeCumulative": true
-    },
-    {
-      "id": 2,
-      "title": "15% de desconto",
-      "rewardType": 0,
-      "value": 15.00,
-      "canSelectValue": false,
-      "isCashback": false,
-      "requirements": "Válido para compras acima de R$100,00",
-      "availableCashback": 0,
-      "maxCashbackForCurrentPurchase": 0,
-      "canUse": true,
-      "points": 500,
-      "rewardCanBeCumulative": false
-    },
-    {
-      "id": 3,
-      "title": "Usar Cashback",
-      "rewardType": 3,
-      "value": 1.00,
-      "canSelectValue": true,
-      "isCashback": true,
-      "requirements": "Máximo de 10% do valor da compra",
-      "availableCashback": 25.00,
-      "maxCashbackForCurrentPurchase": 15.00,
-      "canUse": true,
-      "points": 1500,
-      "rewardCanBeCumulative": true
-    }
-  ]
-}
-```
+  <ResponseField name="rewards[].id" type="integer">
+    ID único da recompensa. Usado posteriormente no resgate.
+  </ResponseField>
+  <ResponseField name="rewards[].title" type="string">
+    Título amigável da recompensa para exibição ao usuário. Exemplos: "R\$50,00 de desconto", "10% de desconto", "Usar Cashback"
+  </ResponseField>
+  <ResponseField name="rewards[].rewardType" type="enum">
+    Tipo da recompensa:
 
+    - `0` - Desconto Percentual (ex: 15% off)
+    - `1` - Desconto em Valor (ex: R\$10,00)
+    - `3` - Cashback (ex: R$10,00 em compras acima de R$30,00)
+    - `4` - Recompensa Customizada (ex: Brinde)
+  </ResponseField>
+  <ResponseField name="rewards[].value" type="decimal">
+    Valor da recompensa:
 
-```json Response - Sem Recompensas
-{
-  "hasRewards": false,
-  "shouldValidateCustomer": false,
-  "availablePoints": 50,
-  "cashbackEnabled": false,
-  "availableCashback": 0,
-  "maxCashbackForCurrentPurchase": 0,
-  "rewards": []
-}
-```
-
-</CodeGroup>
-
-#### Campos de Resposta Importantes
-
-<ResponseField name="hasRewards" type="boolean">
-  Se `false`, não há recompensas disponíveis. O fluxo de recompensas deve ser ignorado.
-</ResponseField>
-
-<ResponseField name="shouldValidateCustomer" type="boolean">
-  Se `true`, o fluxo deve seguir para a validação do cliente (envio de código PIN). Se `false`, a validação pode ser pulada.
-</ResponseField>
-
-<ResponseField name="availablePoints" type="integer">
-  Quantidade de pontos que o cliente possui atualmente.
-</ResponseField>
-
-<ResponseField name="cashbackEnabled" type="boolean">
-  Se `true`, existe uma recompensa de Cashback configurada.
-</ResponseField>
-
-<ResponseField name="availableCashback" type="decimal">
-  Valor total de cashback que o cliente possui.
-</ResponseField>
-
-<ResponseField name="maxCashbackForCurrentPurchase" type="decimal">
-  Valor máximo de cashback que pode ser utilizado na compra atual, considerando as regras configuradas.
-</ResponseField>
-
-#### Campos de Cada Recompensa
-
-<ResponseField name="rewards[].id" type="integer">
-  ID único da recompensa. Usado posteriormente no resgate.
-</ResponseField>
-
-<ResponseField name="rewards[].title" type="string">
-  Título amigável da recompensa para exibição ao usuário. Exemplos: "R\$50,00 de desconto", "10% de desconto", "Usar Cashback"
-</ResponseField>
-
-<ResponseField name="rewards[].rewardType" type="enum">
-  Tipo da recompensa:
-
-  - `0` - Desconto Percentual (ex: 15% off)
-  - `1` - Desconto em Valor (ex: R\$10,00)
-  - `3` - Cashback (ex: R$10,00 em compras acima de R$30,00)
-  - `4` - Recompensa Customizada (ex: Brinde)
-</ResponseField>
-
-<ResponseField name="rewards[].value" type="decimal">
-  Valor da recompensa:
-
-  - **Desconto Percentual**: Valor do percentual (ex: `10.00` para 10%)
-  - **Desconto em Valor**: Valor em reais (ex: `10.00` para R\$10,00)
-  - **Cashback**: Valor de cada ponto em reais
-</ResponseField>
-
-<ResponseField name="rewards[].canUse" type="boolean">
-  Se `true`, o cliente pode usar esta recompensa. Se `false`, exiba a recompensa como desabilitada para que o cliente saiba o que pode conquistar no futuro.
-</ResponseField>
-
-<ResponseField name="rewards[].points" type="integer">
-  Quantidade de pontos necessários para resgatar esta recompensa.
-</ResponseField>
-
-<ResponseField name="rewards[].requirements" type="string">
-  Texto amigável descrevendo os requisitos para usar a recompensa. Exemplo: "Válido para compras acima de R\$50,00"
-</ResponseField>
-
-<ResponseField name="rewards[].isCashback" type="boolean">
-  Se `true`, esta é uma recompensa de cashback e o cliente pode escolher o valor a utilizar.
-</ResponseField>
-
-<ResponseField name="rewards[].maxCashbackForCurrentPurchase" type="decimal">
-  Para cashback, o valor máximo que pode ser usado nesta compra específica.
-</ResponseField>
-
-<ResponseField name="rewards[].rewardCanBeCumulative" type="boolean">
-  Se `true`, a recompensa pode ser usada junto com outros descontos. Se `false`, a recompensa só pode ser usada se não houver outros descontos no pedido.
-</ResponseField>
+    - **Desconto Percentual**: Valor do percentual (ex: `10.00` para 10%)
+    - **Desconto em Valor**: Valor em reais (ex: `10.00` para R\$10,00)
+    - **Cashback**: Valor de cada ponto em reais
+  </ResponseField>
+  <ResponseField name="rewards[].canUse" type="boolean">
+    Se `true`, o cliente pode usar esta recompensa. Se `false`, exiba a recompensa como desabilitada para que o cliente saiba o que pode conquistar no futuro.
+  </ResponseField>
+  <ResponseField name="rewards[].points" type="integer">
+    Quantidade de pontos necessários para resgatar esta recompensa.
+  </ResponseField>
+  <ResponseField name="rewards[].requirements" type="string">
+    Texto amigável descrevendo os requisitos para usar a recompensa. Exemplo: "Válido para compras acima de R\$50,00"
+  </ResponseField>
+  <ResponseField name="rewards[].isCashback" type="boolean">
+    Se `true`, esta é uma recompensa de cashback e o cliente pode escolher o valor a utilizar.
+  </ResponseField>
+  <ResponseField name="rewards[].maxCashbackForCurrentPurchase" type="decimal">
+    Para cashback, o valor máximo que pode ser usado nesta compra específica.
+  </ResponseField>
+  <ResponseField name="rewards[].rewardCanBeCumulative" type="boolean">
+    Se `true`, a recompensa pode ser usada junto com outros descontos. Se `false`, a recompensa só pode ser usada se não houver outros descontos no pedido.
+  </ResponseField>
+</Accordion>
 
 ---
 
@@ -403,87 +387,79 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
   Identificador do cliente (CPF/CNPJ apenas números, ou e-mail).
 </ParamField>
 
-##### Request Body
+<Accordion title="Request Body e Resposta">
+  <ParamField body="TransactionId" type="string">
+    ID único para identificar esta transação. Pode ser qualquer string vinculada à compra atual. Se não houver um ID disponível, use o timestamp atual.
+  </ParamField>
+  <ParamField body="Phone" type="string">
+    Telefone do cliente. Use este campo se o cliente ainda não tiver telefone cadastrado na BonifiQ.
+  </ParamField>
+  <ParamField body="Email" type="string">
+    E-mail do cliente. Use este campo se o cliente ainda não tiver e-mail cadastrado na BonifiQ.
+  </ParamField>
+  <CodeGroup>
 
-<ParamField body="TransactionId" type="string">
-  ID único para identificar esta transação. Pode ser qualquer string vinculada à compra atual. Se não houver um ID disponível, use o timestamp atual.
-</ParamField>
+  ```json Request
+  {
+    "transactionId": "PDV-001-2024-01-15-10:30",
+    "phone": "11999998888",
+    "email": null
+  }
+  ```
 
-<ParamField body="Phone" type="string">
-  Telefone do cliente. Use este campo se o cliente ainda não tiver telefone cadastrado na BonifiQ.
-</ParamField>
+  
+  ```json Response - Sucesso
+  {
+    "success": true,
+    "friendlyErrorMessage": null,
+    "shouldInformPhone": false,
+    "shouldInformEmail": false,
+    "sentBySMS": true,
+    "sentByEmail": false,
+    "transactionId": "PDV-001-2024-01-15-10:30",
+    "errorMessage": null,
+    "code": null
+  }
+  ```
 
-<ParamField body="Email" type="string">
-  E-mail do cliente. Use este campo se o cliente ainda não tiver e-mail cadastrado na BonifiQ.
-</ParamField>
+  
+  ```json Response - Telefone Necessário
+  {
+    "success": false,
+    "friendlyErrorMessage": "É necessário informar o telefone do cliente",
+    "shouldInformPhone": true,
+    "shouldInformEmail": false,
+    "sentBySMS": false,
+    "sentByEmail": false,
+    "transactionId": "PDV-001-2024-01-15-10:30",
+    "errorMessage": "Customer phone not found",
+    "code": null
+  }
+  ```
 
-<CodeGroup>
+  </CodeGroup>
 
-```json Request
-{
-  "transactionId": "PDV-001-2024-01-15-10:30",
-  "phone": "11999998888",
-  "email": null
-}
-```
+  #### Campos de Resposta
 
-
-```json Response - Sucesso
-{
-  "success": true,
-  "friendlyErrorMessage": null,
-  "shouldInformPhone": false,
-  "shouldInformEmail": false,
-  "sentBySMS": true,
-  "sentByEmail": false,
-  "transactionId": "PDV-001-2024-01-15-10:30",
-  "errorMessage": null,
-  "code": null
-}
-```
-
-
-```json Response - Telefone Necessário
-{
-  "success": false,
-  "friendlyErrorMessage": "É necessário informar o telefone do cliente",
-  "shouldInformPhone": true,
-  "shouldInformEmail": false,
-  "sentBySMS": false,
-  "sentByEmail": false,
-  "transactionId": "PDV-001-2024-01-15-10:30",
-  "errorMessage": "Customer phone not found",
-  "code": null
-}
-```
-
-</CodeGroup>
-
-#### Campos de Resposta do Challenge
-
-<ResponseField name="success" type="boolean">
-  Se `true`, o challenge foi enviado com sucesso.
-</ResponseField>
-
-<ResponseField name="sentBySMS" type="boolean">
-  Se `true`, o código foi enviado por SMS.
-</ResponseField>
-
-<ResponseField name="sentByEmail" type="boolean">
-  Se `true`, o código foi enviado por e-mail.
-</ResponseField>
-
-<ResponseField name="shouldInformPhone" type="boolean">
-  Se `true` e `success=false`, é necessário informar o telefone do cliente em uma nova requisição.
-</ResponseField>
-
-<ResponseField name="shouldInformEmail" type="boolean">
-  Se `true` e `success=false`, é necessário informar o e-mail do cliente em uma nova requisição.
-</ResponseField>
-
-<ResponseField name="friendlyErrorMessage" type="string">
-  Mensagem de erro amigável para exibição ao usuário.
-</ResponseField>
+  <ResponseField name="success" type="boolean">
+    Se `true`, o challenge foi enviado com sucesso.
+  </ResponseField>
+  <ResponseField name="sentBySMS" type="boolean">
+    Se `true`, o código foi enviado por SMS.
+  </ResponseField>
+  <ResponseField name="sentByEmail" type="boolean">
+    Se `true`, o código foi enviado por e-mail.
+  </ResponseField>
+  <ResponseField name="shouldInformPhone" type="boolean">
+    Se `true` e `success=false`, é necessário informar o telefone do cliente em uma nova requisição.
+  </ResponseField>
+  <ResponseField name="shouldInformEmail" type="boolean">
+    Se `true` e `success=false`, é necessário informar o e-mail do cliente em uma nova requisição.
+  </ResponseField>
+  <ResponseField name="friendlyErrorMessage" type="string">
+    Mensagem de erro amigável para exibição ao usuário.
+  </ResponseField>
+</Accordion>
 
 ---
 
@@ -499,44 +475,42 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
   Identificador do cliente (mesmo usado no challenge).
 </ParamField>
 
-##### Request Body
+<Accordion title="Request Body e Resposta">
+  <ParamField body="TransactionId" type="string">
+    Mesmo ID usado na chamada de challenge.
+  </ParamField>
+  <ParamField body="Code" type="string" required>
+    Código PIN informado pelo cliente.
+  </ParamField>
+  <CodeGroup>
 
-<ParamField body="TransactionId" type="string">
-  Mesmo ID usado na chamada de challenge.
-</ParamField>
+  ```json Request
+  {
+    "transactionId": "PDV-001-2024-01-15-10:30",
+    "code": "123456"
+  }
+  ```
 
-<ParamField body="Code" type="string" required>
-  Código PIN informado pelo cliente.
-</ParamField>
+  
+  ```json Response - Sucesso
+  {
+    "transactionId": "PDV-001-2024-01-15-10:30",
+    "success": true,
+    "friendlyErrorMessage": null
+  }
+  ```
 
-<CodeGroup>
+  
+  ```json Response - Código Inválido
+  {
+    "transactionId": "PDV-001-2024-01-15-10:30",
+    "success": false,
+    "friendlyErrorMessage": "Código inválido. Tente novamente."
+  }
+  ```
 
-```json Request
-{
-  "transactionId": "PDV-001-2024-01-15-10:30",
-  "code": "123456"
-}
-```
-
-
-```json Response - Sucesso
-{
-  "transactionId": "PDV-001-2024-01-15-10:30",
-  "success": true,
-  "friendlyErrorMessage": null
-}
-```
-
-
-```json Response - Código Inválido
-{
-  "transactionId": "PDV-001-2024-01-15-10:30",
-  "success": false,
-  "friendlyErrorMessage": "Código inválido. Tente novamente."
-}
-```
-
-</CodeGroup>
+  </CodeGroup>
+</Accordion>
 
 <Warning>
   Se `success=false`, o fluxo não deve continuar. O vendedor pode solicitar um novo código ou cancelar a operação.
@@ -560,142 +534,131 @@ A validação é uma etapa de segurança **opcional** que envia um código PIN a
   ID da recompensa a ser resgatada (obtido no endpoint `/rewards/available`).
 </ParamField>
 
-##### Request Body
+<Accordion title="Request Body">
+  <ParamField body="CustomerId" type="string" required>
+    Identificador do cliente (CPF/CNPJ ou e-mail).
+  </ParamField>
+  <ParamField body="Value" type="decimal">
+    **Obrigatório apenas para Cashback**. Valor de cashback que o cliente deseja utilizar. Deve estar entre R\$1,00 e o `maxCashbackForCurrentPurchase`.
+  </ParamField>
+  <ParamField body="Points" type="integer">
+    **Alternativa ao Value para Cashback**. Quantidade de pontos a utilizar. Use `Value` ou `Points`, não ambos.
+  </ParamField>
+  <ParamField body="OriginalKey" type="string" required>
+    Chave única para garantir idempotência. Mesmo que a requisição seja feita mais de uma vez, o resgate acontecerá apenas uma vez.
 
-<ParamField body="CustomerId" type="string" required>
-  Identificador do cliente (CPF/CNPJ ou e-mail).
-</ParamField>
+    **Sugestão de formato**: `{rewardId}-{customerId}-{orderId}-{value}`
 
-<ParamField body="Value" type="decimal">
-  **Obrigatório apenas para Cashback**. Valor de cashback que o cliente deseja utilizar. Deve estar entre R\$1,00 e o `maxCashbackForCurrentPurchase`.
-</ParamField>
+    Exemplo: `3-12345678900-PDV001-15.00`
+  </ParamField>
+  <ParamField body="Branch" type="object">
+    Informações da filial/loja onde a compra está sendo realizada.
 
-<ParamField body="Points" type="integer">
-  **Alternativa ao Value para Cashback**. Quantidade de pontos a utilizar. Use `Value` ou `Points`, não ambos.
-</ParamField>
+    <Expandable title="Propriedades">
+      <ParamField body="Branch.OriginalId" type="string">
+        ID da filial no sistema do cliente.
+      </ParamField>
+      <ParamField body="Branch.Name" type="string">
+        Nome da filial.
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <ParamField body="SalesPerson" type="object">
+    Informações do vendedor responsável pela venda.
 
-<ParamField body="OriginalKey" type="string" required>
-  Chave única para garantir idempotência. Mesmo que a requisição seja feita mais de uma vez, o resgate acontecerá apenas uma vez.
+    <Expandable title="Propriedades">
+      <ParamField body="SalesPerson.OriginalId" type="string">
+        ID do vendedor no sistema do cliente.
+      </ParamField>
+      <ParamField body="SalesPerson.Name" type="string">
+        Nome do vendedor.
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <ParamField body="Metadatas" type="array">
+    Lista de metadados customizados para necessidades específicas do negócio.
 
-  **Sugestão de formato**: `{rewardId}-{customerId}-{orderId}-{value}`
+    <Expandable title="Propriedades">
+      <ParamField body="Metadatas[].Name" type="string">
+        Nome do metadado.
+      </ParamField>
+      <ParamField body="Metadatas[].Value" type="string">
+        Valor do metadado.
+      </ParamField>
+    </Expandable>
+  </ParamField>
+  <CodeGroup>
 
-  Exemplo: `3-12345678900-PDV001-15.00`
-</ParamField>
-
-<ParamField body="Branch" type="object">
-  Informações da filial/loja onde a compra está sendo realizada.
-
-  <Expandable title="Propriedades">
-    <ParamField body="Branch.OriginalId" type="string">
-      ID da filial no sistema do cliente.
-    </ParamField>
-    <ParamField body="Branch.Name" type="string">
-      Nome da filial.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="SalesPerson" type="object">
-  Informações do vendedor responsável pela venda.
-
-  <Expandable title="Propriedades">
-    <ParamField body="SalesPerson.OriginalId" type="string">
-      ID do vendedor no sistema do cliente.
-    </ParamField>
-    <ParamField body="SalesPerson.Name" type="string">
-      Nome do vendedor.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<ParamField body="Metadatas" type="array">
-  Lista de metadados customizados para necessidades específicas do negócio.
-
-  <Expandable title="Propriedades">
-    <ParamField body="Metadatas[].Name" type="string">
-      Nome do metadado.
-    </ParamField>
-    <ParamField body="Metadatas[].Value" type="string">
-      Valor do metadado.
-    </ParamField>
-  </Expandable>
-</ParamField>
-
-<CodeGroup>
-
-```json Request - Desconto Fixo
-{
-  "customerId": "12345678900",
-  "value": null,
-  "points": null,
-  "originalKey": "1-12345678900-PDV001",
-  "branch": {
-    "originalId": "LOJA-001",
-    "name": "Loja Centro"
-  },
-  "salesPerson": {
-    "originalId": "VEND-123",
-    "name": "João Silva"
-  }
-}
-```
-
-
-```json Request - Cashback
-{
-  "customerId": "12345678900",
-  "value": 15.00,
-  "points": null,
-  "originalKey": "3-12345678900-PDV001-15.00",
-  "branch": {
-    "originalId": "LOJA-001",
-    "name": "Loja Centro"
-  }
-}
-```
-
-
-```json Response - Sucesso
-{
-  "hasError": false,
-  "errorMessage": null,
-  "data": {
-    "rewardId": 456,
-    "point": {
-      "pointId": 789,
-      "quantity": -100,
-      "metadatas": null
-    },
-    "externalCode": "BNF-2024-ABC123",
+  ```json Request - Desconto Fixo
+  {
+    "customerId": "12345678900",
+    "value": null,
+    "points": null,
     "originalKey": "1-12345678900-PDV001",
-    "coupon": null
+    "branch": {
+      "originalId": "LOJA-001",
+      "name": "Loja Centro"
+    },
+    "salesPerson": {
+      "originalId": "VEND-123",
+      "name": "João Silva"
+    }
   }
-}
-```
+  ```
 
-</CodeGroup>
+  
+  ```json Request - Cashback
+  {
+    "customerId": "12345678900",
+    "value": 15.00,
+    "points": null,
+    "originalKey": "3-12345678900-PDV001-15.00",
+    "branch": {
+      "originalId": "LOJA-001",
+      "name": "Loja Centro"
+    }
+  }
+  ```
 
-#### Campos de Resposta do Resgate
+  
+  ```json Response - Sucesso
+  {
+    "hasError": false,
+    "errorMessage": null,
+    "data": {
+      "rewardId": 456,
+      "point": {
+        "pointId": 789,
+        "quantity": -100,
+        "metadatas": null
+      },
+      "externalCode": "BNF-2024-ABC123",
+      "originalKey": "1-12345678900-PDV001",
+      "coupon": null
+    }
+  }
+  ```
 
-<ResponseField name="data.rewardId" type="integer">
-  ID único do resgate realizado. Use este ID para cancelar a recompensa se necessário.
-</ResponseField>
+  </CodeGroup>
+</Accordion>
 
-<ResponseField name="data.externalCode" type="string">
-  **IMPORTANTE**: Este código deve ser enviado no campo `Coupon` quando o pedido for cadastrado na BonifiQ. Isso vincula o resgate ao pedido.
-</ResponseField>
-
-<ResponseField name="data.originalKey" type="string">
-  Mesma chave enviada na requisição, confirmando a idempotência.
-</ResponseField>
-
-<ResponseField name="data.point.pointId" type="integer">
-  ID do registro de pontos gerado pelo resgate.
-</ResponseField>
-
-<ResponseField name="data.point.quantity" type="integer">
-  Quantidade de pontos utilizados (valor negativo indica débito).
-</ResponseField>
+<Accordion title="Campos de Resposta">
+  <ResponseField name="data.rewardId" type="integer">
+    ID único do resgate realizado. Use este ID para cancelar a recompensa se necessário.
+  </ResponseField>
+  <ResponseField name="data.externalCode" type="string">
+    **IMPORTANTE**: Este código deve ser enviado no campo `Coupon` quando o pedido for cadastrado na BonifiQ. Isso vincula o resgate ao pedido.
+  </ResponseField>
+  <ResponseField name="data.originalKey" type="string">
+    Mesma chave enviada na requisição, confirmando a idempotência.
+  </ResponseField>
+  <ResponseField name="data.point.pointId" type="integer">
+    ID do registro de pontos gerado pelo resgate.
+  </ResponseField>
+  <ResponseField name="data.point.quantity" type="integer">
+    Quantidade de pontos utilizados (valor negativo indica débito).
+  </ResponseField>
+</Accordion>
 
 <Tip>
   Após receber a resposta de sucesso, aplique o desconto correspondente no pedido do PDV. O tipo e valor do desconto foram informados no endpoint `/rewards/available`.
@@ -719,38 +682,40 @@ Existem duas formas de cancelar uma recompensa resgatada:
   O `RewardId` retornado no endpoint de resgate.
 </ParamField>
 
-<CodeGroup>
+<Accordion title="Exemplo de Requisição e Resposta">
+  <CodeGroup>
 
-```bash Request
-DELETE /v1/pvt/POS/rewards/456
-```
+  ```bash Request
+  DELETE /v1/pvt/POS/rewards/456
+  ```
 
-
-```json Response
-{
-  "hasError": false,
-  "data": {
-    "id": 456,
-    "customer": {
-      "originalId": "12345678900",
-      "name": "Maria Silva",
-      "email": "maria@email.com"
-    },
-    "externalCode": "BNF-2024-ABC123",
-    "cashValue": 10.00,
-    "isCanceled": true,
-    "redeemDate": "2024-01-15T10:30:00Z",
-    "points": {
-      "id": 789,
-      "points": -100,
-      "type": 4,
-      "eventKey": "reward-456"
+  
+  ```json Response
+  {
+    "hasError": false,
+    "data": {
+      "id": 456,
+      "customer": {
+        "originalId": "12345678900",
+        "name": "Maria Silva",
+        "email": "maria@email.com"
+      },
+      "externalCode": "BNF-2024-ABC123",
+      "cashValue": 10.00,
+      "isCanceled": true,
+      "redeemDate": "2024-01-15T10:30:00Z",
+      "points": {
+        "id": 789,
+        "points": -100,
+        "type": 4,
+        "eventKey": "reward-456"
+      }
     }
   }
-}
-```
+  ```
 
-</CodeGroup>
+  </CodeGroup>
+</Accordion>
 
 #### 4.2. Cancelar por OriginalKey
 
@@ -758,46 +723,45 @@ DELETE /v1/pvt/POS/rewards/456
   Cancela uma recompensa pela OriginalKey usada no resgate.
 </ParamField>
 
-##### Request Body
+<Accordion title="Request Body e Resposta">
+  <ParamField body="OriginalKey" type="string" required>
+    A mesma `OriginalKey` utilizada no momento do resgate.
+  </ParamField>
+  <CodeGroup>
 
-<ParamField body="OriginalKey" type="string" required>
-  A mesma `OriginalKey` utilizada no momento do resgate.
-</ParamField>
+  ```json Request
+  {
+    "originalKey": "1-12345678900-PDV001"
+  }
+  ```
 
-<CodeGroup>
-
-```json Request
-{
-  "originalKey": "1-12345678900-PDV001"
-}
-```
-
-
-```json Response
-{
-  "hasError": false,
-  "data": {
-    "id": 456,
-    "customer": {
-      "originalId": "12345678900",
-      "name": "Maria Silva",
-      "email": "maria@email.com"
-    },
-    "externalCode": "BNF-2024-ABC123",
-    "cashValue": 10.00,
-    "isCanceled": true,
-    "redeemDate": "2024-01-15T10:30:00Z",
-    "points": {
-      "id": 789,
-      "points": -100,
-      "type": 4,
-      "eventKey": "reward-456"
+  
+  ```json Response
+  {
+    "hasError": false,
+    "data": {
+      "id": 456,
+      "customer": {
+        "originalId": "12345678900",
+        "name": "Maria Silva",
+        "email": "maria@email.com"
+      },
+      "externalCode": "BNF-2024-ABC123",
+      "cashValue": 10.00,
+      "isCanceled": true,
+      "redeemDate": "2024-01-15T10:30:00Z",
+      "points": {
+        "id": 789,
+        "points": -100,
+        "type": 4,
+        "eventKey": "reward-456"
+      }
     }
   }
-}
-```
+  ```
 
-</CodeGroup>
+  </CodeGroup>
+</Accordion>
 
 <Warning>
   O cancelamento de uma recompensa **devolve os pontos ao cliente**. Esta operação não pode ser desfeita.
